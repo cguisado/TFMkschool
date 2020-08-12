@@ -27,3 +27,5 @@ df
 Tenemos un dataset compuesto por 1167 empresas, con un shape = 14.304 x 463.
 Esto se debe a que cada empresa, como hemos visto anteriormente al abrir el primero de los archivos, está compuesta por un historial variable de entre 1-10 años.
 Dependiendo de la industria, disponemos de unos datos financieros o de otros, por lo que el siguiente paso será la división por industria.
+
+df.to_csv('df.xlsx', header=False, index=False)
