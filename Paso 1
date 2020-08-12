@@ -1,0 +1,29 @@
+## TFM. Paso 1 -  Concatenar Datasets
+
+Ya que tenemos todos los datasets en archivos excels diferentes, lo primero que haremos será unirlos en un mismo dataframe. Para ello, utilizaremos una función que vaya recorriendo el path donde están guardados todos los archivos y uniéndolos con un concat.
+
+import pandas as pd
+import numpy as np
+import os
+
+path = r"C:/Users/carlos.guisado/Documents/Thomson/Uipath/Descargas/Data/"
+archivo = os.listdir(r"C:\Users\carlos.guisado\Documents\Thomson\Uipath\Descargas\Data")
+len(archivo)
+
+archivo[0] , archivo [10]
+
+Contamos con 1167 datasets, que equivalen a los datos financieros de 1.167 empresas capitalizadas en la bolsa americana.
+
+#Abrimos el primer excel de todos, al cual vamos a ir añadiendole los datos de las demás empresas.
+df = pd.read_excel(r"C:\Users\carlos.guisado\Documents\Thomson\Uipath\Descargas\Data\A.xlsx", sheet_name = "FinancialData")
+df.head()
+
+for i in range (1,len(archivo)):
+    file = path + archivo[i]
+    temp_data = pd.read_excel(file, sheet_name = "FinancialData")
+    df = pd.concat([df, temp_data], axis = 0, ignore_index = True, verify_integrity = True)
+df
+
+Tenemos un dataset compuesto por 1167 empresas, con un shape = 14.304 x 463.
+Esto se debe a que cada empresa, como hemos visto anteriormente al abrir el primero de los archivos, está compuesta por un historial variable de entre 1-10 años.
+Dependiendo de la industria, disponemos de unos datos financieros o de otros, por lo que el siguiente paso será la división por industria.
