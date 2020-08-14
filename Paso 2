@@ -1,0 +1,143 @@
+### PASO 2: CLASIFICAR POR INDUSTRIAS - CREACIÓN DE DATASETS
+
+Ya tenemos todos los datos financieros de las empresas guardados en un dataset llamado "df.xlsx". 
+Ahora nos disponemos a filtrar por industrias para seguir estructurando los datos. 
+
+import pandas as pd
+import numpy as np
+
+df = pd.read_excel('df.xlsx')
+df.head()
+
+df.columns.values.tolist()
+
+Primero vamos a filtrar todos aquellas empresas las cuales la unidad de reporte son millones.
+
+df = df[df['Reporting Unit'] == 'Millions']
+df.head()
+
+industrias = df["TRBC Industry Group"]
+industrias = industrias.unique()
+
+lista_industrias = industrias.tolist()
+type(lista_industrias)
+
+len(lista_industrias)
+
+lista_industrias
+
+Ya tenemos el dataframe filtrado por aquellas empresas que han reportado en Millones de dólares, y una lista con las distintas industrias que se van a ir estudiando.
+El siguiente paso consistirá en crear un dataset por cada una de las industrias que vamos a analizar.
+
+for x in lista_industrias:
+    print (x)
+    
+El siguiente paso será crear, por cada una de las industrias, un dataframe con las empresas que se dedican al sector y sus datos financieros estructurados. A continuación, lo guardaremos en una carpeta llamada "Industrias".
+
+#Definimos variable "ruta" para guardar los datos en una carpeta específica.
+ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
+
+Healthcare = df[df['TRBC Industry Group'] == 'Healthcare Equipment & Supplies']
+Healthcare.to_excel(ruta + 'Healthcare.xlsx', header=True, index=False)
+Metals_Mining = df[df['TRBC Industry Group'] == 'Metals & Mining']
+Metals_Mining.to_excel(ruta + 'Metals_Mining.xlsx', header=True, index=False)
+Passenger_Transportation_Services = df[df['TRBC Industry Group'] == 'Passenger Transportation Services']
+Passenger_Transportation_Services.to_excel(ruta + 'Passenger_Transportation_Services.xlsx', header=True, index=False)
+Specialty_Retailers = df[df['TRBC Industry Group'] == 'Specialty Retailers']
+Specialty_Retailers.to_excel(ruta + 'Specialty_Retailers.xlsx', header=True, index=False)
+Computers_Phones_Household_Electronics = df[df['TRBC Industry Group'] == 'Electronics']
+Computers_Phones_Household_Electronics.to_excel(ruta + 'Computers_Phones_Household_Electronics.xlsx', header=True, index=False)
+Freight_Logistics_Services = df[df['TRBC Industry Group'] == 'Freight & Logistics Services']
+Freight_Logistics_Services.to_excel(ruta + 'Freight_Logistics_Services.xlsx', header=True, index=False)
+Pharmaceuticals = df[df['TRBC Industry Group'] == 'Pharmaceuticals']
+Pharmaceuticals.to_excel(ruta + 'Pharmaceuticals.xlsx', header=True, index=False)
+Professional_Commercial_Services = df[df['TRBC Industry Group'] == 'Professional & Commercial Services']
+Professional_Commercial_Services.to_excel(ruta + 'Professional_Commercial_Services.xlsx', header=True, index=False)
+Food_Tobacco= df[df['TRBC Industry Group'] == 'Food & Tobacco']
+Food_Tobacco.to_excel(ruta + 'Food_Tobacco.xlsx', header=True, index=False)
+Software_IT_Services = df[df['TRBC Industry Group'] == 'Software & IT Services']
+Software_IT_Services.to_excel(ruta + 'Software_IT_Services.xlsx', header=True, index=False)
+Multiline_Utilities = df[df['TRBC Industry Group'] == 'Multiline Utilities']
+Multiline_Utilities.to_excel(ruta + 'Multiline_Utilities.xlsx', header=True, index=False)
+Electric_Utilities_IPPs = df[df['TRBC Industry Group'] == 'Electric Utilities & IPPs']
+Electric_Utilities_IPPs.to_excel(ruta + 'Electric_Utilities_IPPs.xlsx', header=True, index=False)
+Insurance = df[df['TRBC Industry Group'] == 'Insurance']
+Insurance.to_excel(ruta + 'Insurance.xlsx', header=True, index=False)
+Machinery = df[df['TRBC Industry Group'] == 'Machinery, Tools, Heavy Vehicles, Trains & Ships']
+Machinery.to_excel(ruta + 'Machinery.xlsx', header=True, index=False)
+Chemicals = df[df['TRBC Industry Group'] == 'Chemicals']
+Chemicals.to_excel(ruta + 'Chemicals.xlsx', header=True, index=False)
+Residential_Commercial_REITs = df[df['TRBC Industry Group'] == 'Residential & Commercial REITs']
+Residential_Commercial_REITs.to_excel(ruta + 'Residential_Commercial_REITs.xlsx', header=True, index=False)
+Aerospace_Defense = df[df['TRBC Industry Group'] == 'Aerospace & Defense']
+Aerospace_Defense.to_excel(ruta + 'Aerospace_Defense.xlsx', header=True, index=False)
+Investment_Banking_Investment_Services = df[df['TRBC Industry Group'] == 'Investment Banking & Investment Services']
+Investment_Banking_Investment_Services.to_excel(ruta + 'Investment_Banking_Investment_Services.xlsx', header=True, index=False)
+Communications = df[df['TRBC Industry Group'] == 'Communications & Networking']
+Communications.to_excel(ruta + 'Communications.xlsx', header=True, index=False)
+Semiconductors = df[df['TRBC Industry Group'] == 'Semiconductors & Semiconductor Equipment']
+Semiconductors.to_excel(ruta + 'Semiconductors.xlsx', header=True, index=False)
+Diversified_Retail = df[df['TRBC Industry Group'] == 'Diversified Retail']
+Diversified_Retail.to_excel(ruta + 'Diversified_Retail.xlsx', header=True, index=False)
+Specialty_Retailers = df[df['TRBC Industry Group'] == 'Specialty Retailers']
+Specialty_Retailers.to_excel(ruta + 'Specialty_Retailers.xlsx', header=True, index=False)
+Healthcare_Providers_Services = df[df['TRBC Industry Group'] == 'Healthcare Providers & Services']
+Healthcare_Providers_Services.to_excel(ruta + 'Healthcare_Providers_Services.xlsx', header=True, index=False)
+Oil_Gas = df[df['TRBC Industry Group'] == 'Oil & Gas']
+Oil_Gas.to_excel(ruta + 'Oil_Gas.xlsx', header=True, index=False)
+Electronic_Equipment_Parts = df[df['TRBC Industry Group'] == 'Electronic Equipment & Parts']
+Electronic_Equipment_Parts.to_excel(ruta + 'Electronic_Equipment_Parts.xlsx', header=True, index=False)
+Containers_Packaging = df[df['TRBC Industry Group'] == 'Containers & Packaging']
+Containers_Packaging.to_excel(ruta + 'Containers_Packaging.xlsx', header=True, index=False)
+Water_Related_Utilities = df[df['TRBC Industry Group'] == 'Water & Related Utilities']
+Water_Related_Utilities.to_excel(ruta + 'Water_Related_Utilities.xlsx', header=True, index=False)
+Banking_Services = df[df['TRBC Industry Group'] == 'Banking Services']
+Banking_Services.to_excel(ruta + 'Banking_Services.xlsx', header=True, index=False)
+Homebuilding_Construction_Supplies = df[df['TRBC Industry Group'] == 'Homebuilding & Construction Supplies']
+Homebuilding_Construction_Supplies.to_excel(ruta + 'Homebuilding_Construction_Supplies.xlsx', header=True, index=False)
+Leisure_Products = df[df['TRBC Industry Group'] == 'Leisure Products']
+Leisure_Products.to_excel(ruta + 'Leisure_Products.xlsx', header=True, index=False)
+Textiles_Apparel = df[df['TRBC Industry Group'] == 'Textiles & Apparel']
+Textiles_Apparel.to_excel(ruta + 'Textiles_Apparel.xlsx', header=True, index=False)
+Beverages = df[df['TRBC Industry Group'] == 'Beverages']
+Beverages.to_excel(ruta + 'Beverages.xlsx', header=True, index=False)
+Coal = df[df['TRBC Industry Group'] == 'Coal']
+Coal.to_excel(ruta + 'Coal.xlsx', header=True, index=False)
+Automobiles_Auto_Parts = df[df['TRBC Industry Group'] == 'Automobiles & Auto Parts']
+Automobiles_Auto_Parts.to_excel(ruta + 'Automobiles_Auto_Parts.xlsx', header=True, index=False)
+Food_Drug_Retailing = df[df['TRBC Industry Group'] == 'Food & Drug Retailing']
+Food_Drug_Retailing.to_excel(ruta + 'Food_Drug_Retailing.xlsx', header=True, index=False)
+Media_Publishing = df[df['TRBC Industry Group'] == 'Media & Publishing']
+Media_Publishing.to_excel(ruta + 'Media_Publishing.xlsx', header=True, index=False)
+Hotels_Entertainment_Services = df[df['TRBC Industry Group'] == 'Hotels & Entertainment Services']
+Hotels_Entertainment_Services.to_excel(ruta + 'Hotels_Entertainment_Services.xlsx', header=True, index=False)
+Personal_Household_PS = df[df['TRBC Industry Group'] == 'Personal & Household Products & Services']
+Personal_Household_PS.to_excel(ruta + 'Personal_Household_PS.xlsx', header=True, index=False)
+Freight_Logistics_Services = df[df['TRBC Industry Group'] == 'Freight & Logistics Services']
+Freight_Logistics_Services.to_excel(ruta + 'Freight_Logistics_Services.xlsx', header=True, index=False)
+Telecommunications_Services = df[df['TRBC Industry Group'] == 'Telecommunications Services']
+Telecommunications_Services.to_excel(ruta + 'Telecommunications_Services.xlsx', header=True, index=False)
+Oil_Gas_Equipment_Services = df[df['TRBC Industry Group'] == 'Oil & Gas Related Equipment and Services']
+Oil_Gas_Equipment_Services.to_excel(ruta + 'Oil_Gas_Equipment_Services.xlsx', header=True, index=False)
+Industrial_Conglomerates = df[df['TRBC Industry Group'] == 'Industrial Conglomerates']
+Industrial_Conglomerates.to_excel(ruta + 'Industrial_Conglomerates.xlsx', header=True, index=False)
+Biotechnology_Medical_Research = df[df['TRBC Industry Group'] == 'Biotechnology & Medical Research']
+Biotechnology_Medical_Research.to_excel(ruta + 'Biotechnology_Medical_Research.xlsx', header=True, index=False)
+Diversified_Industrial_Goods = df[df['TRBC Industry Group'] == 'Diversified Industrial Goods Wholesalers']
+Diversified_Industrial_Goods.to_excel(ruta + 'Diversified_Industrial_Goods.xlsx', header=True, index=False)
+Real_Estate_Operations = df[df['TRBC Industry Group'] == 'Real Estate Operations']
+Real_Estate_Operations.to_excel(ruta + 'Real_Estate_Operations.xlsx', header=True, index=False)
+Construction_Engineering = df[df['TRBC Industry Group'] == 'Construction & Engineering']
+Construction_Engineering.to_excel(ruta + 'Construction_Engineering.xlsx', header=True, index=False)
+Paper_Forest_Products = df[df['TRBC Industry Group'] == 'Paper & Forest Products Goods']
+Paper_Forest_Products.to_excel(ruta + 'Paper_Forest_Products.xlsx', header=True, index=False)
+Construction_Materials = df[df['TRBC Industry Group'] == 'Construction Materials']
+Construction_Materials.to_excel(ruta + 'Construction_Materials.xlsx', header=True, index=False)
+Household_Goods = df[df['TRBC Industry Group'] == 'Household Goods']
+Household_Goods.to_excel(ruta + 'Household_Goods.xlsx', header=True, index=False)
+Natural_Gas_Utilities = df[df['TRBC Industry Group'] == 'Natural Gas Utilities']
+Natural_Gas_Utilities.to_excel(ruta + 'Natural_Gas_Utilities.xlsx', header=True, index=False)
+Office_Equipment = df[df['TRBC Industry Group'] == 'Office Equipment']
+Office_Equipment.to_excel(ruta + 'Office_Equipment.xlsx', header=True, index=False)
+
+El siguiente paso consistirá en abrir una de las industrias, examinarla y realizar la limpieza de datos necesaria. 
