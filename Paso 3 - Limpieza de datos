@@ -1,0 +1,31 @@
+### PASO 3: LIMPIEZA DE DATOS
+En este paso seleccionaremos una de las industrias para examinarla y realizar la limpieza de datos. 
+El objetivo consistirá en construir, finalmente, una fórmula la cual pueda limpiar todos los archivos de las diferentes industrias para su posterior estudio.
+
+import pandas as pd
+import numpy as np
+
+#Leemos el archivo excel de la industria 'Healthcare'.
+ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
+df = pd.read_excel(ruta + "Healthcare.xlsx")
+
+#Comprobamos que se ha cargado correctamente.
+df.head()
+
+df.shape
+
+#Borramos aquellas columnas de las cuales no tenemos datos. 
+#Hay que tener en cuenta que en el dataset vienen datos financieros que no son representados en todas las industrias.
+df_ = df.dropna(axis = 1, how = "any")
+df_.shape
+
+df_.columns.values
+
+#Nos aseguramos que no existen datos NAN en nuestras variables financieras.
+df_.isnull().sum()
+
+#Borramos la columna "Country" y "Reporting Unit" ya que no la vamos a utilizar.
+df_ = df_.drop(['Country', 'Reporting Unit'], axis = 1)
+df_head()
+
+#Definimos una fórmula que pueda hacer esta limpieza para todas las industrias que queremos analizar.
