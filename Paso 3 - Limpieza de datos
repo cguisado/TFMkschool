@@ -29,3 +29,12 @@ df_ = df_.drop(['Country', 'Reporting Unit'], axis = 1)
 df_head()
 
 #Definimos una fórmula que pueda hacer esta limpieza para todas las industrias que queremos analizar.
+    df_ = df.dropna(axis = 1, how = "any")
+    df_ = df_.drop(['Country', 'Reporting Unit'], axis = 1)
+    df_.isnull().sum()
+    
+df_.head()
+
+#Añadimos una columna a nuestro DataFrame. Variable financiera utilizada en la valoración de empresas, en la que
+#se divide el valor de la empresa (market cap) por su EBITDA.
+df_["EV/EBITDA"] = df_["Market Capitalization"] / df_["EBITDA"]
