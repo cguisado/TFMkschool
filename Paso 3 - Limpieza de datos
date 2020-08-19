@@ -12,29 +12,80 @@ df = pd.read_excel(ruta + "Healthcare.xlsx")
 #Comprobamos que se ha cargado correctamente.
 df.head()
 
-df.shape
-
-#Borramos aquellas columnas de las cuales no tenemos datos. 
-#Hay que tener en cuenta que en el dataset vienen datos financieros que no son representados en todas las industrias.
-df_ = df.dropna(axis = 1, how = "any")
+#Borramos aquellas columnas de las cuales no tenemos ningún dato. 
+#Esto lo hacemos porque en el dataset vienen variables financieras las cuales no se estudian en todas las industrias.
+df_ = df.dropna(axis = 1, how = "all")
 df_.shape
 
-df_.columns.values
+#Creamos una variable númerica que nos de el 25% de la longitud del dataset
+porcent = 25%len(df_)
+#Creamos un nuevo DataFrame en el que se pueda ver el número de variables nulas por fila del Dataset df_
+cols_null = pd.DataFrame(df_.isnull().sum())
+#Borramos todas aquellas variables en las que el 75% de las empresas tengan valores nulos.
+cols_null = cols_null[cols_null < porcent]
+#Creamos el dataset de las No Nulas
+cols_not_null = cols_null.dropna()
+cols_not_null = cols_not_null.transpose()
+#Creamos una nueva variable con una lista de las variables financieras que analizaremos en esta industria
+variables_financieras = cols_not_null.columns.values.tolist()
 
-#Nos aseguramos que no existen datos NAN en nuestras variables financieras.
-df_.isnull().sum()
+#Nos quedamos en el Dataset df_ únicamente con las columnas de la lista "variables_financieras"
+columns = df_.columns.values.tolist()
+sublist = [x for x in columns if x in variables_financieras]
+df_ = df_[sublist]
 
 #Borramos la columna "Country" y "Reporting Unit" ya que no la vamos a utilizar.
 df_ = df_.drop(['Country', 'Reporting Unit'], axis = 1)
-df_head()
-
-#Definimos una fórmula que pueda hacer esta limpieza para todas las industrias que queremos analizar.
-    df_ = df.dropna(axis = 1, how = "any")
-    df_ = df_.drop(['Country', 'Reporting Unit'], axis = 1)
-    df_.isnull().sum()
-    
-df_.head()
+#Rellenamos aquellos valores NaN con 0
+df_.fillna(0)
 
 #Añadimos una columna a nuestro DataFrame. Variable financiera utilizada en la valoración de empresas, en la que
 #se divide el valor de la empresa (market cap) por su EBITDA.
 df_["EV/EBITDA"] = df_["Market Capitalization"] / df_["EBITDA"]
+
+#Definimos una fórmula que pueda hacer esta limpieza para todas las industrias que queremos analizar.
+
+def limpieza_datos():
+    #Borramos aquellas columnas de las cuales no tenemos ningún dato. 
+    #Esto lo hacemos porque en el dataset vienen variables financieras las cuales no se estudian en todas las industrias.
+    df_ = df.dropna(axis = 1, how = "all")
+    #Creamos una variable númerica que nos de el 25% de la longitud del dataset
+    porcent = 25%len(df_)
+    #Creamos un nuevo DataFrame en el que se pueda ver el número de variables nulas por fila del Dataset df_
+    cols_null = pd.DataFrame(df_.isnull().sum())
+    #Borramos todas aquellas variables en las que el 75% de las empresas tengan valores nulos.
+    cols_null = cols_null[cols_null < porcent]
+    #Creamos el dataset de las No Nulas
+    cols_not_null = cols_null.dropna()
+    cols_not_null = cols_not_null.transpose()
+    #Creamos una nueva variable con una lista de las variables financieras que analizaremos en esta industria
+    variables_financieras = cols_not_null.columns.values.tolist()
+    df_ = df_.drop(['Country', 'Reporting Unit'], axis = 1)
+    #Borramos la columna "Country" y "Reporting Unit" ya que no la vamos a utilizar.
+    df_ = df_.drop(['Country', 'Reporting Unit'], axis = 1)
+    #Rellenamos aquellos valores NaN con 0
+    df_.fillna(0)
+    #Añadimos una columna a nuestro DataFrame. Variable financiera utilizada en la valoración de empresas, en la que
+    #se divide el valor de la empresa (market cap) por su EBITDA.
+    df_["EV/EBITDA"] = df_["Market Capitalization"] / df_["EBITDA"]
+    
+df_head()
+
+
+### PASO 4a: CÁLCULO DE CORRELACIONES ENTRE VARIABLES
+El objetivo de este paso es el de calcular la correlación entre el precio de mercado de las compañías de la industria "Healthcare" y sus ratios financieras, 
+las cuales algunas vienen dadas en el dataset y otras tendremos que calcularlas.
+
+import numpy as np
+import pandas as pd
+from scipy.stats.stats import pearsonr
+
+df_corr = df_.corr('pearson')
+df_corr = df_corr['Market Capitalization']
+df_corr
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df_corr = df_corr.sort_values(ascending = True)
+df_corr.plot.barh(figsize = (25,25), width = 0.45)
