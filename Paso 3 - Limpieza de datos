@@ -44,7 +44,6 @@ df_.fillna(0)
 df_["EV/EBITDA"] = df_["Market Capitalization"] / df_["EBITDA"]
 
 #Definimos una fórmula que pueda hacer esta limpieza para todas las industrias que queremos analizar.
-
 def limpieza_datos():
     #Borramos aquellas columnas de las cuales no tenemos ningún dato. 
     #Esto lo hacemos porque en el dataset vienen variables financieras las cuales no se estudian en todas las industrias.
@@ -73,19 +72,190 @@ df_head()
 
 
 ### PASO 4a: CÁLCULO DE CORRELACIONES ENTRE VARIABLES
-El objetivo de este paso es el de calcular la correlación entre el precio de mercado de las compañías de la industria "Healthcare" y sus ratios financieras, 
-las cuales algunas vienen dadas en el dataset y otras tendremos que calcularlas.
+El objetivo de este paso es el de calcular la correlación entre el precio de mercado de las compañías de la industria
+"Healthcare" y sus ratios financieros, los cuales algunos vienen dados en el dataset y otros tendremos que calcularlos.
 
 import numpy as np
 import pandas as pd
 from scipy.stats.stats import pearsonr
 
-df_corr = df_.corr('pearson')
-df_corr = df_corr['Market Capitalization']
+#Primero vamos a crear un DataFrame con la variación de la capitalización bursatil
+df_ratios = pd.DataFrame(df_["Mkt Cap Var"])
+
+#Ahora iremos definiendo diferentes variables financieras. Debido a que analizaremos distintas industrias, y para evitar que
+#se produzca un error en python, iremos viendo si existen los ratios demandados y añadiéndolo a df_ratios en caso positivo.
+
+#Ratio Book Value per share:
+try:
+    BookValue_per_share = pd.DataFrame((df_["Price To Book Value per Share - Issue"]*100) / df_["Price Close (End Of Period)"])
+    BookValue_per_share.columns = ["BookValue_per_share"]
+    df_ratios = pd.concat([df_ratios, BookValue_per_share], axis = 1)
+except KeyError:
+    pass
+#Ratio EV_EBITDA:
+try:
+    EV_EBITDA = pd.DataFrame(data = df_["EV/EBITDA"])
+    df_ratios = pd.concat([df_ratios, EV_EBITDA], axis = 1)
+except KeyError:
+    pass
+#Ratio PE_Growth_Ratio:
+try:
+    PE_Growth_Ratio = pd.DataFrame(df_["PE Growth Ratio"])
+    df_ratios = pd.concat([df_ratios, PE_Growth_Ratio], axis = 1)
+except KeyError:
+    pass
+#Ratio Pretax ROA:
+try:
+    Pretax_ROA = pd.DataFrame(df_["Pretax ROA"])
+    df_ratios = pd.concat([df_ratios, Pretax_ROA], axis = 1)
+except KeyError:
+    pass
+#Ratio Pretax ROE:
+try:
+    Pretax_ROE = pd.DataFrame(df_["Pretax ROE"])
+    df_ratios = pd.concat([df_ratios, Pretax_ROE], axis = 1)
+except KeyError:
+    pass
+#Ratio ROA:
+try:
+    ROA = pd.DataFrame(df_["Return On Avg Tot Assets"])
+    df_ratios = pd.concat([df_ratios, ROA], axis = 1)
+except KeyError:
+    pass
+#Ratio Pretax ROE:
+try:
+    ROE = pd.DataFrame(df_["Return On Avg Com Eq"])
+    df_ratios = pd.concat([df_ratios, ROE], axis = 1)
+except KeyError:
+    pass
+#Ratio Pretax ROIC:
+try:
+    ROIC = pd.DataFrame(df_["Return On Invst Cap"])
+    df_ratios = pd.concat([df_ratios, ROIC], axis = 1)
+except KeyError:
+    pass
+#Ratio Debt on Assets:
+try:
+    Debt_on_Assets = pd.DataFrame(df_["Tot Debt Pct of Tot Assets"])
+    df_ratios = pd.concat([df_ratios, Debt_on_Assets], axis = 1)
+except KeyError:
+    pass
+#Ratio Debt on Equity:
+try:
+    Debt_on_Equity = pd.DataFrame(df_["Tot Debt Pct of Tot Eq"])
+    df_ratios = pd.concat([df_ratios, Debt_on_Equity], axis = 1)
+except KeyError:
+    pass
+#Ratio Debt on Capital:
+try:
+    Debt_on_Capital = pd.DataFrame(df_["Tot Debt Pct of Tot Cap"])
+    df_ratios = pd.concat([df_ratios, Debt_on_Capital], axis = 1)
+except KeyError:
+    pass
+#Ratio Gross Profit:
+try:
+    Gross_Profit = pd.DataFrame(df_["Gross Profit Margin - %"])
+    df_ratios = pd.concat([df_ratios, Gross_Profit], axis = 1)
+except KeyError:
+    pass
+#Ratio EBITDA Margin:
+try:
+    EBITDA_Margin = pd.DataFrame(df_["EBITDA Margin - %"])
+    df_ratios = pd.concat([df_ratios, EBITDA_Margin], axis = 1)
+except KeyError:
+    pass
+#Ratio Operating Margin:
+try:
+    Operating_Margin = pd.DataFrame(df["Operating Margin - %"])
+    df_ratios = pd.concat([df_ratios, Operating_Margin], axis = 1)
+except KeyError:
+    pass
+#Ratio Net Margin:
+try:
+    Net_Margin = pd.DataFrame(df_["Net Margin - %"])
+    df_ratios = pd.concat([df_ratios, Net_Margin], axis = 1)
+except KeyError:
+    pass
+#Ratio Quick_r:
+try:
+    Quick_Ratio = pd.DataFrame(df_["Quick Ratio"])
+    df_ratios = pd.concat([df_ratios, Quick_Ratio], axis = 1)
+except KeyError:
+    pass
+#Ratio Current_r:
+try:
+    Current_Ratio = pd.DataFrame(df_["Curr Ratio"])
+    df_ratios = pd.concat([df_ratios, Current_Ratio], axis = 1)
+except KeyError:
+    pass
+#Ratio FOCF_Yield:
+try:
+    FOCF_Yield = pd.DataFrame(df_["FOCF Yld"])
+    df_ratios = pd.concat([df_ratios, FOCF_Yield], axis = 1)
+except KeyError:
+    pass
+#Ratio Working Capital to Total Assets:
+try:
+    Working_Cap_to_Tot_Assets = pd.DataFrame(df_["Wkg Cap to Tot Assets"])
+    df_ratios = pd.concat([df_ratios, Working_Cap_to_Tot_Assets], axis = 1)
+except KeyError:
+    pass
+#Ratio Inventory Turnover:
+try:
+    Inventory_Turnover = pd.DataFrame(df_["Invnt Turnover"])
+    df_ratios = pd.concat([df_ratios, Inventory_Turnover], axis = 1)
+except KeyError:
+    pass
+#Ratio Average Inventory Days:
+try:
+    Average_Inventory_Days = pd.DataFrame(df_["Avg Invnt Days"])
+    df_ratios = pd.concat([df_ratios, Average_Inventory_Days], axis = 1)
+except KeyError:
+    pass
+#Ratio Price to Cash Flow per Share:
+try:
+    Price_to_Cash_Flow_per_Share = pd.DataFrame((df_["Price To Cash Flow per Share"]*100) / df_["Price Close (End Of Period)"])
+    Price_to_Cash_Flow_per_Share.columns = ["Price_to_Cash_Flow_per_Share"]
+    df_ratios = pd.concat([df_ratios, Price_to_Cash_Flow_per_Share], axis = 1)
+except KeyError:
+    pass
+#Ratio Total Assets per Employee:
+try:
+    Tot_Assets_per_Employee = pd.DataFrame((df_["Tot Assets per Emp"] * 100) /df_["Tot Assets"])
+    Tot_Assets_per_Employee.columns = ["Tot_Assets_per_Employee"]
+    df_ratios = pd.concat([df_ratios, Tot_Assets_per_Employee], axis = 1)
+except KeyError:
+    pass
+#Ratio Investment:
+try:
+    Investment_Ratio = pd.DataFrame(df_["Invst Ratio - %"])
+    df_ratios = pd.concat([df_ratios, Investment_Ratio], axis = 1)
+except KeyError:
+    pass
+#Ratio Efficiency_r:
+try:
+    Efficiency_Ratio = pd.DataFrame(df_["Efficiency Ratio - %"])
+    df_ratios = pd.concat([df_ratios, Efficiency_Ratio], axis = 1)
+except KeyError:
+    pass
+#Ratio Income Bef Taxes Margin:
+try:
+    Inc_Bef_Taxes_Margin = pd.DataFrame(df_["Inc Bef Taxes Margin - %"])
+    df_ratios = pd.concat([df_ratios, Inc_Bef_Taxes_Margin], axis = 1)
+except KeyError:
+    pass
+    
+#Comprobamos que el DaraFrame df_ratios está correcto
+df_ratios.columns.values
+
+df_ratios = df_ratios.dropna(axis = 1, how = "all")
+df_ratios.isnull().sum()
+
+df_corr = df_ratios.corr('pearson')
+df_corr = df_corr['Mkt Cap Var']
 df_corr
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-df_corr = df_corr.sort_values(ascending = True)
-df_corr.plot.barh(figsize = (25,25), width = 0.45)
+###import matplotlib.pyplot as plt
+###import seaborn as sns
+###df_corr = df_corr.sort_values(ascending = True)
+###df_corr.plot.barh(figsize = (25,25), width = 0.45)
