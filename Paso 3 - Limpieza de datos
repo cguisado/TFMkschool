@@ -68,7 +68,7 @@ def limpieza_datos():
     #se divide el valor de la empresa (market cap) por su EBITDA.
     df_["EV/EBITDA"] = df_["Market Capitalization"] / df_["EBITDA"]
     
-df_head()
+df_.head()
 
 
 ### PASO 4a: CÁLCULO DE CORRELACIONES ENTRE VARIABLES
@@ -79,11 +79,25 @@ import numpy as np
 import pandas as pd
 from scipy.stats.stats import pearsonr
 
-#Primero vamos a crear un DataFrame con la variación de la capitalización bursatil
-df_ratios = pd.DataFrame(df_["Mkt Cap Var"])
+#Primero vamos a crear un DataFrame con el nombre de las distintas compañías de la industria
+df_ratios = pd.DataFrame(df_["Company Name"])
 
 #Ahora iremos definiendo diferentes variables financieras. Debido a que analizaremos distintas industrias, y para evitar que
 #se produzca un error en python, iremos viendo si existen los ratios demandados y añadiéndolo a df_ratios en caso positivo.
+
+#Date
+try:
+    Date = pd.DataFrame(data = df_["Field Name"])
+    df_ratios = pd.concat([df_ratios, Date], axis = 1)
+except KeyError:
+    pass
+
+#Market Cap
+try:
+    Mkt_Cap = pd.DataFrame(data = df_["Market Capitalization"])
+    df_ratios = pd.concat([df_ratios, Mkt_Cap], axis = 1)
+except KeyError:
+    pass
 
 #Ratio Book Value per share:
 try:
@@ -166,7 +180,7 @@ except KeyError:
     pass
 #Ratio Operating Margin:
 try:
-    Operating_Margin = pd.DataFrame(df["Operating Margin - %"])
+    Operating_Margin = pd.DataFrame(df_["Operating Margin - %"])
     df_ratios = pd.concat([df_ratios, Operating_Margin], axis = 1)
 except KeyError:
     pass
@@ -249,10 +263,39 @@ except KeyError:
 df_ratios.columns.values
 
 df_ratios = df_ratios.dropna(axis = 1, how = "all")
-df_ratios.isnull().sum()
+df_ratios
+
+#df_ratios = pd.DataFrame(df_["Company Name"])
+df_prueba = df_ratios[["Company Name","Field Name","Market Capitalization"]]
+df_prueba
+
+def funcPrueba(df,columnName):
+    #despues concatenar cada df resultante
+    #df filtrado por companyName
+    #columnName columna sobre la que aplicar la funcion
+    fechas = df["Field Name"].tolist()[::-1]
+    listaValues = [None]*len(fechas)
+    for i in range(1,len(fechas)):
+        mayor = df[df['Field Name'] == fechas[i]][[columnName]].iloc[0].values[0]
+        menor = df[df['Field Name'] == fechas[i-1]][[columnName]].iloc[0].values[0]
+        value = (((mayor*100)/menor)/100)-1
+        listaValues[i] = value
+    df[columnName] = listaValues[::-1]
+    return df
+
+###Paso1
+listaDFs = [None]*len(companies)
+for i in range(0,len(companies)):
+    listaDFs[i] = funcPrueba(df_prueba[df_prueba["Company Name"]==companies[i]],"Market Capitalization")
+    
+###Paso2
+#concatenar
+
+###Paso3
+###repetir paso 1 cambiando columna
 
 df_corr = df_ratios.corr('pearson')
-df_corr = df_corr['Mkt Cap Var']
+df_corr = df_corr['Market Capitalization']
 df_corr
 
 ###import matplotlib.pyplot as plt
