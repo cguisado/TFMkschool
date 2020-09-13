@@ -28,52 +28,23 @@ cols_not_null = cols_null.dropna()
 cols_not_null = cols_not_null.transpose()
 #Creamos una nueva variable con una lista de las variables financieras que analizaremos en esta industria
 variables_financieras = cols_not_null.columns.values.tolist()
-
 #Nos quedamos en el Dataset df_ únicamente con las columnas de la lista "variables_financieras"
 columns = df_.columns.values.tolist()
 sublist = [x for x in columns if x in variables_financieras]
 df_ = df_[sublist]
-
 #Borramos la columna "Country" y "Reporting Unit" ya que no la vamos a utilizar.
 df_ = df_.drop(['Country', 'Reporting Unit'], axis = 1)
-#Rellenamos aquellos valores NaN con 0
-df_.fillna(0)
 
 #Añadimos una columna a nuestro DataFrame. Variable financiera utilizada en la valoración de empresas, en la que
 #se divide el valor de la empresa (market cap) por su EBITDA.
 df_["EV/EBITDA"] = df_["Market Capitalization"] / df_["EBITDA"]
 
-#Definimos una fórmula que pueda hacer esta limpieza para todas las industrias que queremos analizar.
-def limpieza_datos():
-    #Borramos aquellas columnas de las cuales no tenemos ningún dato. 
-    #Esto lo hacemos porque en el dataset vienen variables financieras las cuales no se estudian en todas las industrias.
-    df_ = df.dropna(axis = 1, how = "all")
-    #Creamos una variable númerica que nos de el 25% de la longitud del dataset
-    porcent = 25%len(df_)
-    #Creamos un nuevo DataFrame en el que se pueda ver el número de variables nulas por fila del Dataset df_
-    cols_null = pd.DataFrame(df_.isnull().sum())
-    #Borramos todas aquellas variables en las que el 75% de las empresas tengan valores nulos.
-    cols_null = cols_null[cols_null < porcent]
-    #Creamos el dataset de las No Nulas
-    cols_not_null = cols_null.dropna()
-    cols_not_null = cols_not_null.transpose()
-    #Creamos una nueva variable con una lista de las variables financieras que analizaremos en esta industria
-    variables_financieras = cols_not_null.columns.values.tolist()
-    df_ = df_.drop(['Country', 'Reporting Unit'], axis = 1)
-    #Borramos la columna "Country" y "Reporting Unit" ya que no la vamos a utilizar.
-    df_ = df_.drop(['Country', 'Reporting Unit'], axis = 1)
-    #Rellenamos aquellos valores NaN con 0
-    df_.fillna(0)
-    #Añadimos una columna a nuestro DataFrame. Variable financiera utilizada en la valoración de empresas, en la que
-    #se divide el valor de la empresa (market cap) por su EBITDA.
-    df_["EV/EBITDA"] = df_["Market Capitalization"] / df_["EBITDA"]
-    
-df_.head()
 
 
 ### PASO 4a: CÁLCULO DE CORRELACIONES ENTRE VARIABLES
-El objetivo de este paso es el de calcular la correlación entre el precio de mercado de las compañías de la industria
-"Healthcare" y sus ratios financieros, los cuales algunos vienen dados en el dataset y otros tendremos que calcularlos.
+El objetivo de este paso es el de crear un dataframe en el que definamos las diferentes variables financieras que queremos utilizar en nuestro modelo.
+Algunas de estas variables vienen dadas en el dataset y otras tendremos que calcularlas.
+Una vez ya tenemos el nuevo dataset, pasaremos a calcular cómo han variado los ratios de un informe a otro.
 
 import numpy as np
 import pandas as pd
@@ -81,6 +52,9 @@ from scipy.stats.stats import pearsonr
 
 #Primero vamos a crear un DataFrame con el nombre de las distintas compañías de la industria
 df_ratios = pd.DataFrame(df_["Company Name"])
+
+#Ahora iremos definiendo diferentes variables financieras. Debido a que analizaremos distintas industrias, y para evitar que
+#se produzca un error en python, iremos viendo si existen los ratios demandados y añadiéndolo a df_ratios en caso positivo.
 
 #Ahora iremos definiendo diferentes variables financieras. Debido a que analizaremos distintas industrias, y para evitar que
 #se produzca un error en python, iremos viendo si existen los ratios demandados y añadiéndolo a df_ratios en caso positivo.
@@ -262,17 +236,14 @@ except KeyError:
 #Comprobamos que el DaraFrame df_ratios está correcto
 df_ratios.columns.values
 
-df_ratios = df_ratios.dropna(axis = 1, how = "all")
-df_ratios
+#Definimos una variable que será un array con el nombre de las compañías
+companies = df_ratios["Company Name"]
+companies = companies.unique()
+companies[0]
 
-#df_ratios = pd.DataFrame(df_["Company Name"])
-df_prueba = df_ratios[["Company Name","Field Name","Market Capitalization"]]
-df_prueba
-
-def funcPrueba(df,columnName):
-    #despues concatenar cada df resultante
-    #df filtrado por companyName
-    #columnName columna sobre la que aplicar la funcion
+#Creamos ahora una función la cual nos crea una lista donde vamos a calcular y añadir,
+#en la columna dada, la variación porcentual de los ratios financieros.
+def func(df,columnName):
     fechas = df["Field Name"].tolist()[::-1]
     listaValues = [None]*len(fechas)
     for i in range(1,len(fechas)):
@@ -283,20 +254,382 @@ def funcPrueba(df,columnName):
     df[columnName] = listaValues[::-1]
     return df
 
-###Paso1
-listaDFs = [None]*len(companies)
-for i in range(0,len(companies)):
-    listaDFs[i] = funcPrueba(df_prueba[df_prueba["Company Name"]==companies[i]],"Market Capitalization")
+#Creamos un dataset en el cual iremos añadiendo las columnas que vamos calculando utilizando la función "func".
+Ratios = df_ratios[["Company Name","Field Name"]]
+
+#Calculamos, uno a uno, el porcentaje de cambio de cada una de las columnas. 
+
+#Market Capitalization
+try:
+    MktCap = df_ratios[["Company Name","Field Name","Market Capitalization"]]
+    MktCap_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        MktCap_ratio[i] = func(MktCap[MktCap["Company Name"]==companies[i]],"Market Capitalization")
     
-###Paso2
-#concatenar
+    dfMktCap= MktCap_ratio[0]
+    for i in range(1,len(MktCap_ratio)):
+        dfMktCap = pd.concat([dfMktCap,MktCap_ratio[i]])
+    Ratios = pd.concat([Ratios, dfMktCap], axis = 1)  
+except KeyError:
+    pass    
 
-###Paso3
-###repetir paso 1 cambiando columna
+#BookValue per share:
+try:
+    Book_Value = df_ratios[["Company Name","Field Name","BookValue_per_share"]]
+    BookValue_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        BookValue_ratio[i] = func(Book_Value[Book_Value["Company Name"]==companies[i]],"BookValue_per_share")
+    dfBookValue= BookValue_ratio[0]
+    for i in range(1,len(BookValue_ratio)):
+        dfBookValue = pd.concat([dfBookValue,BookValue_ratio[i]])
+    Ratios = pd.concat([Ratios, dfBookValue], axis = 1)
+except KeyError:
+    pass 
 
-df_corr = df_ratios.corr('pearson')
+#EV/EBITDA
+try:
+    EV_EBITDA = df_ratios[["Company Name","Field Name","EV/EBITDA"]]
+    EV_EBITDA_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        EV_EBITDA_ratio[i] = func(EV_EBITDA[EV_EBITDA["Company Name"]==companies[i]],"EV/EBITDA")
+    dfEV_EBITDA= EV_EBITDA_ratio[0]
+    
+    for i in range(1,len(EV_EBITDA_ratio)):
+        dfEV_EBITDA = pd.concat([dfEV_EBITDA,EV_EBITDA_ratio[i]])
+    Ratios = pd.concat([Ratios, dfEV_EBITDA], axis = 1)
+except KeyError:
+    pass 
+
+#PE Growth Ratio
+try:
+    PE_Growth = df_ratios[["Company Name","Field Name","PE Growth Ratio"]]
+    PE_Growth_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        PE_Growth_ratio[i] = func(PE_Growth[PE_Growth["Company Name"]==companies[i]],"PE Growth Ratio")
+        
+    dfPE_Growth= PE_Growth_ratio[0]
+    for i in range(1,len(PE_Growth_ratio)):
+        dfPE_Growth = pd.concat([dfPE_Growth,PE_Growth_ratio[i]])
+    Ratios = pd.concat([Ratios, dfPE_Growth], axis = 1)
+    
+except KeyError:
+    pass  
+
+#Pretax ROA
+try:
+    Pretax_ROA = df_ratios[["Company Name","Field Name","Pretax ROA"]]
+    Pretax_ROA_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Pretax_ROA_ratio[i] = func(Pretax_ROA[Pretax_ROA["Company Name"]==companies[i]],"Pretax ROA")
+        
+    dfPretax_ROA= Pretax_ROA_ratio[0]
+    for i in range(1,len(Pretax_ROA_ratio)):
+        dfPretax_ROE = pd.concat([dfPretax_ROA,Pretax_ROA_ratio[i]])
+    Ratios = pd.concat([Ratios, dfPretax_ROA], axis = 1)  
+except KeyError:
+    pass    
+
+
+#Pretax ROE
+try:
+    Pretax_ROE = df_ratios[["Company Name","Field Name","Pretax ROE"]]
+    Pretax_ROE_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Pretax_ROE_ratio[i] = func(Pretax_ROE[Pretax_ROE["Company Name"]==companies[i]],"Pretax ROE")
+
+    dfPretax_ROE= Pretax_ROE_ratio[0]
+    for i in range(1,len(Pretax_ROE_ratio)):
+        dfPretax_ROE = pd.concat([dfPretax_ROE,Pretax_ROE_ratio[i]])
+    Ratios = pd.concat([Ratios, dfPretax_ROE], axis = 1)
+    
+except KeyError:
+    pass
+
+#Return On Avg Tot Assets
+try:
+    ROA = df_ratios[["Company Name","Field Name","Return On Avg Tot Assets"]]
+    ROA_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        ROA_ratio[i] = func(ROA[ROA["Company Name"]==companies[i]],"Return On Avg Tot Assets")
+        
+    dfROA= ROA_ratio[0]
+    for i in range(1,len(ROA_ratio)):
+        dfROA = pd.concat([dfROA,ROA_ratio[i]])
+    Ratios = pd.concat([Ratios, dfROA], axis = 1)  
+    
+except KeyError:
+    pass
+
+#Return On Avg Com Eq
+try:
+    ROE = df_ratios[["Company Name","Field Name","Return On Avg Com Eq"]]
+    ROE_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        ROE_ratio[i] = func(ROE[ROE["Company Name"]==companies[i]],"Return On Avg Com Eq")
+        
+    dfROE= ROE_ratio[0]
+    for i in range(1,len(ROE_ratio)):
+        dfROE = pd.concat([dfROE,ROE_ratio[i]])
+    Ratios = pd.concat([Ratios, dfROE], axis = 1)   
+    
+except KeyError:
+    pass
+
+#Tot Debt Pct of Tot Assets
+try:
+    Debt_Assets = df_ratios[["Company Name","Field Name","Tot Debt Pct of Tot Assets"]]
+    Debt_Assets_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Debt_Assets_ratio[i] = func(Debt_Assets[Debt_Assets["Company Name"]==companies[i]],"Tot Debt Pct of Tot Assets")
+        
+    dfDebt_Assets= Debt_Assets_ratio[0]
+    for i in range(1,len(Debt_Assets_ratio)):
+        dfDebt_Assets = pd.concat([dfDebt_Assets,Debt_Assets_ratio[i]])
+    Ratios = pd.concat([Ratios, dfDebt_Assets], axis = 1)   
+except KeyError:
+    pass
+
+#Tot Debt Pct of Tot Eq
+try:
+    Debt_Eq = df_ratios[["Company Name","Field Name","Tot Debt Pct of Tot Eq"]]
+    Debt_Eq_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Debt_Eq_ratio[i] = func(Debt_Eq[Debt_Eq["Company Name"]==companies[i]],"Tot Debt Pct of Tot Eq")
+        
+    dfDebt_Eq= Debt_Eq_ratio[0]
+    for i in range(1,len(Debt_Eq_ratio)):
+        dfDebt_Eq = pd.concat([dfDebt_Eq,Debt_Eq_ratio[i]])
+    Ratios = pd.concat([Ratios, dfDebt_Eq], axis = 1)  
+    
+except KeyError:
+    pass
+
+#Tot Debt Pct of Tot Cap
+try:
+    Debt_Cap = df_ratios[["Company Name","Field Name","Tot Debt Pct of Tot Cap"]]
+    Debt_Cap_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Debt_Cap_ratio[i] = func(Debt_Cap[Debt_Cap["Company Name"]==companies[i]],"Tot Debt Pct of Tot Cap")
+        
+    dfDebt_Cap= Debt_Cap_ratio[0]
+    for i in range(1,len(Debt_Cap_ratio)):
+        dfDebt_Cap = pd.concat([dfDebt_Cap,Debt_Cap_ratio[i]])
+    Ratios = pd.concat([Ratios, dfDebt_Cap], axis = 1) 
+    
+except KeyError:
+    pass
+
+#Gross Profit Margin - %
+try:
+    Gross_Profit = df_ratios[["Company Name","Field Name","Gross Profit Margin - %"]]
+    Gross_Profit_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Gross_Profit_ratio[i] = func(Gross_Profit[Gross_Profit["Company Name"]==companies[i]],"Gross Profit Margin - %")
+        
+    dfGross_Profit= Gross_Profit_ratio[0]
+    for i in range(1,len(Gross_Profit_ratio)):
+        dfGross_Profit = pd.concat([dfGross_Profit,Gross_Profit_ratio[i]])
+    Ratios = pd.concat([Ratios, dfGross_Profit], axis = 1)  
+    
+except KeyError:
+    pass
+
+#EBITDA Margin - %
+try:
+    EBITDA_Margin = df_ratios[["Company Name","Field Name","EBITDA Margin - %"]]
+    EBITDA_Margin_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        EBITDA_Margin_ratio[i] = func(EBITDA_Margin[EBITDA_Margin["Company Name"]==companies[i]],"EBITDA Margin - %")
+        
+    dfEBITDA_Margin= EBITDA_Margin_ratio[0]
+    for i in range(1,len(EBITDA_Margin_ratio)):
+        dfEBITDA_Margin = pd.concat([dfEBITDA_Margin,EBITDA_Margin_ratio[i]])
+    Ratios = pd.concat([Ratios, dfEBITDA_Margin], axis = 1)  
+    
+except KeyError:
+    pass
+
+#Operating Margin - %
+try:
+    Operating_Margin = df_ratios[["Company Name","Field Name","Operating Margin - %"]]
+    Operating_Margin_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Operating_Margin_ratio[i] = func(Operating_Margin[Operating_Margin["Company Name"]==companies[i]],"Operating Margin - %")
+
+    dfOperating_Margin= Operating_Margin_ratio[0]
+    for i in range(1,len(Operating_Margin_ratio)):
+        dfOperating_Margin = pd.concat([dfOperating_Margin,Operating_Margin_ratio[i]])
+    Ratios = pd.concat([Ratios, dfOperating_Margin], axis = 1) 
+        
+except KeyError:
+    pass
+
+#Net Margin - %
+try:
+    Net_Margin = df_ratios[["Company Name","Field Name","Net Margin - %"]]
+    Net_Margin_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Net_Margin_ratio[i] = func(Net_Margin[Net_Margin["Company Name"]==companies[i]],"Net Margin - %")
+        
+    dfNet_Margin= Net_Margin_ratio[0]
+    for i in range(1,len(Net_Margin_ratio)):
+        dfNet_Margin = pd.concat([dfNet_Margin,Net_Margin_ratio[i]])
+    Ratios = pd.concat([Ratios, dfNet_Margin], axis = 1) 
+    
+except KeyError:
+    pass
+
+#Quick Ratio
+try:
+    Quick_R = df_ratios[["Company Name","Field Name","Quick Ratio"]]
+    Quick_R_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Quick_R_ratio[i] = func(Quick_R[Quick_R["Company Name"]==companies[i]],"Quick Ratio")
+        
+    dfQuick_R= Quick_R_ratio[0]
+    for i in range(1,len(Quick_R_ratio)):
+        dfQuick_R = pd.concat([dfQuick_R,Quick_R_ratio[i]])
+    Ratios = pd.concat([Ratios, dfQuick_R], axis = 1) 
+    
+except KeyError:
+    pass
+
+#Curr Ratio
+try:
+    Curr_R = df_ratios[["Company Name","Field Name","Curr Ratio"]]
+    Curr_R_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Curr_R_ratio[i] = func(Curr_R[Curr_R["Company Name"]==companies[i]],"Curr Ratio")
+        
+    dfCurr_R= Curr_R_ratio[0]
+    for i in range(1,len(Curr_R_ratio)):
+        dfCurr_R = pd.concat([dfCurr_R,Curr_R_ratio[i]])
+    Ratios = pd.concat([Ratios, dfCurr_R], axis = 1)
+    
+except KeyError:
+    pass
+
+#FOCF Yld
+try:
+    FOCF_Yld = df_ratios[["Company Name","Field Name","FOCF Yld"]]
+    FOCF_Yld_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        FOCF_Yld_ratio[i] = func(FOCF_Yld[FOCF_Yld["Company Name"]==companies[i]],"FOCF Yld")
+        
+    dfFOCF_Yld= FOCF_Yld_ratio[0]
+    for i in range(1,len(FOCF_Yld_ratio)):
+        dfFOCF_Yld = pd.concat([dfFOCF_Yld,FOCF_Yld_ratio[i]])
+    Ratios = pd.concat([Ratios, dfFOCF_Yld], axis = 1)
+    
+except KeyError:
+    pass
+
+#Wkg Cap to Tot Assets
+try:
+    WkgCap_Assets = df_ratios[["Company Name","Field Name","Wkg Cap to Tot Assets"]]
+    WkgCap_Assets_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        WkgCap_Assets_ratio[i] = func(WkgCap_Assets[WkgCap_Assets["Company Name"]==companies[i]],"Wkg Cap to Tot Assets")
+        
+    dfWkgCap_Assets= WkgCap_Assets_ratio[0]
+    for i in range(1,len(WkgCap_Assets_ratio)):
+        dfWkgCap_Assets = pd.concat([dfWkgCap_Assets,WkgCap_Assets_ratio[i]])
+    Ratios = pd.concat([Ratios, dfWkgCap_Assets], axis = 1)
+    
+except KeyError:
+    pass
+
+#Invnt Turnover
+try:
+    Invnt_Turnover = df_ratios[["Company Name","Field Name","Invnt Turnover"]]
+    Invnt_Turnover_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Invnt_Turnover_ratio[i] = func(Invnt_Turnover[Invnt_Turnover["Company Name"]==companies[i]],"Invnt Turnover")
+        
+    dfInvnt_Turnover= Invnt_Turnover_ratio[0]
+    for i in range(1,len(Invnt_Turnover_ratio)):
+        dfInvnt_Turnover = pd.concat([dfInvnt_Turnover,Invnt_Turnover_ratio[i]])
+    Ratios = pd.concat([Ratios, dfInvnt_Turnover], axis = 1)
+    
+except KeyError:
+    pass
+
+#Avg Invnt Days
+try:
+    Avg_Invnt = df_ratios[["Company Name","Field Name","Avg Invnt Days"]]
+    Avg_Invnt_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Avg_Invnt_ratio[i] = func(Avg_Invnt[Avg_Invnt["Company Name"]==companies[i]],"Avg Invnt Days")
+
+    dfAvg_Invnt= Avg_Invnt_ratio[0]
+    for i in range(1,len(Avg_Invnt_ratio)):
+        dfAvg_Invnt = pd.concat([dfAvg_Invnt,Avg_Invnt_ratio[i]])
+    Ratios = pd.concat([Ratios, dfAvg_Invnt], axis = 1)
+    
+except KeyError:
+    pass
+
+#Tot_Assets_per_Employee
+try:
+    Assets_employee = df_ratios[["Company Name","Field Name","Tot_Assets_per_Employee"]]
+    Assets_employee_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Assets_employee_ratio[i] = func(Assets_employee[Assets_employee["Company Name"]==companies[i]],"Tot_Assets_per_Employee")
+        
+    dfAssets_employee= Assets_employee_ratio[0]
+    for i in range(1,len(Assets_employee_ratio)):
+        dfAssets_employee = pd.concat([dfAssets_employee,Assets_employee_ratio[i]])
+    Ratios = pd.concat([Ratios, dfAssets_employee], axis = 1)
+    
+except KeyError:
+    pass
+
+#Inc Bef Taxes Margin - %
+try:
+    IncBef_Margin = df_ratios[["Company Name","Field Name","Inc Bef Taxes Margin - %"]]
+    IncBef_Margin_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        IncBef_Margin_ratio[i] = func(IncBef_Margin[IncBef_Margin["Company Name"]==companies[i]],"Inc Bef Taxes Margin - %")
+        
+    dfIncBef_Margin= IncBef_Margin_ratio[0]
+    for i in range(1,len(IncBef_Margin_ratio)):
+        dfIncBef_Margin = pd.concat([dfIncBef_Margin,IncBef_Margin_ratio[i]])
+    Ratios = pd.concat([Ratios, dfIncBef_Margin], axis = 1)
+    
+except KeyError:
+    pass
+
+### Paso 4b: Análisis de correlación entre variables financieras
+El objetivo de este paso es conocer qué ratios son los que tienen mayor relación con el incremento del valor de mercado de una empresa.
+
+import statsmodels
+import statsmodels.formula.api as smf
+from sklearn.feature_selection import RFE
+from sklearn.svm import SVR
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+
+Ratios = Ratios.drop(['Company Name', 'Field Name'], axis = 1)
+Ratios = Ratios.dropna(axis = 0, how = 'all')
+Ratios
+
+df_corr = Ratios.corr('pearson')
 df_corr = df_corr['Market Capitalization']
 df_corr
+
+#Regresión lineal simple
+x1 = Ratios.loc[:,['EV/EBITDA']]
+y1 = Ratios.loc[:,['Market Capitalization']]
+lm = smf.ols(formula = 'x1 ~ y1', data = Ratios).fit()
+lm.summary()
+
+lmLR = LinearRegression()
+lmLR.fit(x1,y1)
+print (lmLR.coef_)
+print (lmLR.intercept_)
+
+%matplotlib inline
+Ratios.plot(kind = "scatter", x = "EV/EBITDA" )
 
 ###import matplotlib.pyplot as plt
 ###import seaborn as sns
