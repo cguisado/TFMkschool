@@ -9,10 +9,7 @@ import numpy as np
 df = pd.read_excel('df.xlsx')
 df.head()
 
-df.columns.values.tolist()
-
-Primero vamos a filtrar todos aquellas empresas las cuales la unidad de reporte son millones.
-
+#Primero vamos a filtrar todos aquellas empresas las cuales la unidad de reporte son millones.
 df = df[df['Reporting Unit'] == 'Millions']
 df.head()
 
