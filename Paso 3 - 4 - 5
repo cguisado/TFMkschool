@@ -609,13 +609,56 @@ from sklearn.svm import SVR
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 
+#Limpieza de datos de los Ratios
+#Primero borramos dos columnas que no necesitamos
 Ratios = Ratios.drop(['Company Name', 'Field Name'], axis = 1)
-Ratios = Ratios.dropna(axis = 0, how = 'all')
-Ratios
+#Calculamos el porcentaje de valores nulos por columna, y borramos aquellas columnas con más de un 15%
+total = Ratios.isnull().sum().sort_values(ascending = False)
+percent = (Ratios.isnull().sum() / Ratios.isnull().count()).sort_values(ascending = False)
+missing_data = pd.concat([total, percent], axis = 1, keys = ['Total', 'Percent'])
+Ratios = Ratios.drop((missing_data[missing_data['Percent'] > 0.15]).index,1)
 
+#Una vez tenemos todos los datos, analizamos la correlación de "Market Capitalization" con cada uno de ellos.
 df_corr = Ratios.corr('pearson')
 df_corr = df_corr['Market Capitalization']
 df_corr
+
+#Agunos de estos datos no tienen mucha lógica, por lo que nos induce a pensar que las variables financieras son dependientes entre si,
+#entre si, y por lo tanto, no se puede hacer un análisis independiente de cada uno de los ratios.
+#Para demostrar nuestra hipótesis, analizaremos si existe correlación entre las variables utilizando matshow.
+
+Ratios.corr()
+
+#Matriz de correlación entre variables
+
+corrmat = Ratios.corr()
+f, ax = plt.subplots(figsize=(12,9))
+sns.heatmap(corrmat, vmax = .8, square = True);
+
+Como podemos ver a primera vista, muchas de nuestras variables son dependientes entre si, por lo que nos encontramos con un problema de milticolinealidad.
+Analizaremos ahora las correlaciones de la variable "Market Capitalization".
+
+corr = Ratios.corr()
+data = corr[['Market Capitalization']].sort_values(by = 'Market Capitalization',ascending = False).style.background_gradient()
+data
+
+corr = Ratios.corr()
+data = corr[['Market Capitalization']].sort_values(by = 'Market Capitalization',ascending = False)
+data_corr = data["Market Capitalization"]
+data_corr= data_corr.to_frame()
+data_corr["Distance"] = data_corr["Market Capitalization"]
+data_corr
+
+for i in range(0,len(data_corr)):
+    if data_corr["Distance"][i] <0:
+        data_corr["Distance"][i] = abs(data_corr["Distance"][i])
+data_ = data_corr.sort_values("Distance", ascending = False)
+data_ = data_.iloc[0:10]
+data_
+
+ratios = Ratios.corr()
+Ratios_corr = ratios[[data_.iloc[0].name, data_.iloc[2].name, data_.iloc[3].name, data_.iloc[4].name, data_.iloc[5].name, data_.iloc[6].name]]
+
 
 #Regresión lineal simple
 x1 = Ratios.loc[:,['EV/EBITDA']]
