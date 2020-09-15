@@ -608,57 +608,88 @@ from sklearn.feature_selection import RFE
 from sklearn.svm import SVR
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 #Limpieza de datos de los Ratios
 #Primero borramos dos columnas que no necesitamos
 Ratios = Ratios.drop(['Company Name', 'Field Name'], axis = 1)
-#Calculamos el porcentaje de valores nulos por columna, y borramos aquellas columnas con más de un 15%
+Ratios = Ratios.dropna(axis = 0, how = 'all')
+#Calculamos el porcentaje de valores nulos por columna, y borramos aquellas columnas con más de un 12%
 total = Ratios.isnull().sum().sort_values(ascending = False)
 percent = (Ratios.isnull().sum() / Ratios.isnull().count()).sort_values(ascending = False)
 missing_data = pd.concat([total, percent], axis = 1, keys = ['Total', 'Percent'])
-Ratios = Ratios.drop((missing_data[missing_data['Percent'] > 0.15]).index,1)
+Ratios = Ratios.drop((missing_data[missing_data['Percent'] > 0.12]).index,1)
 
 #Una vez tenemos todos los datos, analizamos la correlación de "Market Capitalization" con cada uno de ellos.
 df_corr = Ratios.corr('pearson')
 df_corr = df_corr['Market Capitalization']
 df_corr
 
-#Agunos de estos datos no tienen mucha lógica, por lo que nos induce a pensar que las variables financieras son dependientes entre si,
-#entre si, y por lo tanto, no se puede hacer un análisis independiente de cada uno de los ratios.
-#Para demostrar nuestra hipótesis, analizaremos si existe correlación entre las variables utilizando matshow.
+Agunos de estos datos no tienen mucha lógica, por lo que nos induce a pensar que las variables financieras son dependientes entre si, y por lo tanto, no se puede hacer un análisis independiente de cada uno de los ratios.
+
+Para demostrar nuestra hipótesis, analizaremos si existe correlación entre las variables utilizando matshow.
 
 Ratios.corr()
 
 #Matriz de correlación entre variables
-
 corrmat = Ratios.corr()
 f, ax = plt.subplots(figsize=(12,9))
-sns.heatmap(corrmat, vmax = .8, square = True);
+sns.heatmap(corrmat, vmax = .8, square = True)
 
 Como podemos ver a primera vista, muchas de nuestras variables son dependientes entre si, por lo que nos encontramos con un problema de milticolinealidad.
-Analizaremos ahora las correlaciones de la variable "Market Capitalization".
 
-corr = Ratios.corr()
-data = corr[['Market Capitalization']].sort_values(by = 'Market Capitalization',ascending = False).style.background_gradient()
-data
+Para solucionarlo, calcularemos el factor de inflacion de la varianza (VIF) e iremos eliminando aquellas variables que son dependientes entre si y aportan la misma información.
+
+#Limpieza
+Ratios = Ratios.dropna(axis = 1, how = 'any')
+Ratios
+
+#VIF
+#Calcularemos el Factor de Inflación de Varianza para cada una de los ratios, con el fin de eliminar de nuestra ecuación
+#aquellos que ofrezcan la misma información, con el objetivo de crear un modelo acertado.
+def calculate_vif(Ratios):
+    vif = pd.DataFrame()
+    vif["Ratios"] = Ratios.columns
+    vif["VIF"] = [variance_inflation_factor(Ratios.values, i) for i in range(Ratios.shape[1])]    
+    return(vif)
+vif = calculate_vif(Ratios)
+while vif['VIF'][vif['VIF'] > 7].any():
+    remove = vif.sort_values('VIF',ascending=0)['Ratios'][:1]
+    Ratios.drop(remove,axis=1,inplace=True)
+    vif = calculate_vif(Ratios)
+vif
+
 
 corr = Ratios.corr()
 data = corr[['Market Capitalization']].sort_values(by = 'Market Capitalization',ascending = False)
 data_corr = data["Market Capitalization"]
 data_corr= data_corr.to_frame()
 data_corr["Distance"] = data_corr["Market Capitalization"]
-data_corr
-
 for i in range(0,len(data_corr)):
     if data_corr["Distance"][i] <0:
         data_corr["Distance"][i] = abs(data_corr["Distance"][i])
+
 data_ = data_corr.sort_values("Distance", ascending = False)
 data_ = data_.iloc[0:10]
 data_
 
 ratios = Ratios.corr()
-Ratios_corr = ratios[[data_.iloc[0].name, data_.iloc[2].name, data_.iloc[3].name, data_.iloc[4].name, data_.iloc[5].name, data_.iloc[6].name]]
+Ratios_corr = ratios[[data_.iloc[0].name, data_.iloc[1].name, data_.iloc[2].name, data_.iloc[3].name, data_.iloc[4].name, data_.iloc[5].name, data_.iloc[6].name]]
+filas = Ratios_corr.index.values
+columnas = Ratios_corr.columns.values
+result = [columnas for columnas in columnas if columnas in filas]
+Ratios_corr[result].loc[result]
 
+# Matriz de correlación
+corrmat = Ratios_corr.corr()
+k = 5 # Número de variables.
+cols = corrmat.nlargest(k, 'Market Capitalization')['Market Capitalization'].index
+cm = np.corrcoef(Ratios_corr[cols].values.T)
+sns.set(font_scale = 1)
+hm = sns.heatmap(cm, cbar = True, annot = True, square = True, fmt = '.2f', annot_kws = {'size': 12}, yticklabels = cols.values, xticklabels = cols.values)
+plt.show()
+
+Ratios
 
 #Regresión lineal simple
 x1 = Ratios.loc[:,['EV/EBITDA']]
