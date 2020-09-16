@@ -702,6 +702,8 @@ from sklearn.svm import SVR
 from sklearn.linear_model import LinearRegression
 import statsmodels.api as svm
 import matplotlib.pyplot as plt
+from sklearn.linear_model import LogisticRegression
+from sklearn import datasets
 import pandas as pd
 import numpy as np
 
@@ -709,7 +711,7 @@ import numpy as np
 data = Ratios
 feature_cols = Ratios_corr.columns[1:]
 X = data[feature_cols]
-y = data["Market Capitalization"]
+y = data[["Market Capitalization"]]
 
 estimator = SVR(kernel ='linear')
 selector = RFE(estimator, 6, step = 1)
@@ -722,9 +724,137 @@ for i in range(0,len(selector.ranking_)):
         lista.append(i)
         
 X_pred = X[X.columns[lista]]
+nom_vars = X[X.columns[lista]]
 
 lm = LinearRegression()
 lm.fit(X_pred,y)
+
+print ("Las variables con mayor correlación con la varianza en el precio de mercado son las siguientes: " + str(nom_vars.columns.values.tolist()))
 print ( "El punto de intersección es el " + str(lm.intercept_))
 print("Los coeficientes de cada una de las variables son " + str(lm.coef_))
 print("La puntuación de este modelo es de " + str(lm.score(X_pred,y)))
+
+
+#Regresión logística con statsmodel.api
+import statsmodels.api as sm
+n = 5
+lr = LogisticRegression()
+feature_cols = Ratios.columns[1:] 
+X = data[feature_cols]
+y = data[["Market Capitalization"]]>0
+
+rfe = RFE(lr, n)
+rfe = rfe.fit(X,y)
+
+print(rfe.ranking_)
+
+logit_model = sm.Logit(y,X)
+result = logit_model.fit()
+
+result.summary2()
+
+#
+dataset = Ratios
+feature_cols = Ratios.columns[1:]
+X = data[feature_cols]
+y = data[["Market Capitalization"]]>0
+
+
+# Splitting the dataset into the Training set and Test set
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
+
+# Feature Scaling
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+# Fitting Logistic Regression to the Training set
+from sklearn.linear_model import LogisticRegression
+classifier = LogisticRegression(random_state = 0)
+classifier.fit(X_train, y_train)
+
+# Predicting the Test set results
+y_pred = classifier.predict(X_test)
+
+# Making the Confusion Matrix
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(y_test, y_pred)
+
+print(classifier.score(X,y))
+
+#
+import pandas as pd
+import numpy as np
+from sklearn import linear_model
+from sklearn import model_selection
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
+import seaborn as sb
+
+#
+dataframe = Ratios
+
+#Creamos el Modelo de Regresión Logística
+feature_cols = Ratios.columns[1:]
+X = dataset[feature_cols]
+y = dataset[["Market Capitalization"]]>0
+
+#creamos nuestro modelo y hacemos que se ajuste (fit) a nuestro conjunto de entradas X y salidas ‘y’.
+model = linear_model.LogisticRegression()
+model.fit(X,y)
+
+#Clasificar nuestro conjunto de entradas X  y revisamos algunas de sus salidas 
+predictions = model.predict(X)
+#print(predictions)[0:5]
+
+# Precision 
+model.score(X,y)
+
+#Validación de nuestro modelo
+validation_size = 0.20
+seed = 7
+X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(X,y, test_size = validation_size, random_state = seed)
+
+# calculamos el nuevo scoring
+name='Logistic Regression'
+kfold = model_selection.KFold(n_splits=10, random_state=seed)
+cv_results = model_selection.cross_val_score(model, X_train, Y_train, cv=kfold, scoring='accuracy')
+msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
+print(msg)
+
+#Predicciones 
+predictions = model.predict(X_validation)
+print(accuracy_score(Y_validation, predictions))
+
+#Reporte de Resultados del Modelo
+print(confusion_matrix(Y_validation, predictions))
+
+#Reporte de clasificación
+print(classification_report(Y_validation, predictions))
+
+#Arboles de Decisión
+#
+import pandas as pd
+import matplotlib.pyplot as plt
+
+data = Ratios
+data['Market Capitalization'] = data["Market Capitalization"]>0
+
+colnames = data.columns.values.tolist()
+predictors = colnames[1:]
+target = colnames[0]
+
+data['is_train'] = np.random.uniform(-1,1,len(data))<=0
+train,test = data[data['is_train']==True], data[data['is_train']==False]
+
+from sklearn.tree import DecisionTreeClassifier
+tree = DecisionTreeClassifier(criterion='entropy', min_samples_split = 30, random_state = 98)
+tree.fit(train[predictors], train[target])
+
+preds = tree.predict(test[predictors])
+pd.crosstab(test[target], preds, rownames = ["Actual"], colnames=["Predictions"])
+
