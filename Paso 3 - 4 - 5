@@ -682,30 +682,49 @@ Ratios_corr[result].loc[result]
 
 # Matriz de correlación
 corrmat = Ratios_corr.corr()
-k = 5 # Número de variables.
+k = 8 # Número de variables.
 cols = corrmat.nlargest(k, 'Market Capitalization')['Market Capitalization'].index
 cm = np.corrcoef(Ratios_corr[cols].values.T)
 sns.set(font_scale = 1)
 hm = sns.heatmap(cm, cbar = True, annot = True, square = True, fmt = '.2f', annot_kws = {'size': 12}, yticklabels = cols.values, xticklabels = cols.values)
 plt.show()
 
-Ratios
+Una vez que ya disponemos de aquellas variables con una mayor correlación con la varianza del valor de mercado de la empresa, nos disponemos a crear nuestro modelo.
 
-#Regresión lineal simple
-x1 = Ratios.loc[:,['EV/EBITDA']]
-y1 = Ratios.loc[:,['Market Capitalization']]
-lm = smf.ols(formula = 'x1 ~ y1', data = Ratios).fit()
-lm.summary()
 
-lmLR = LinearRegression()
-lmLR.fit(x1,y1)
-print (lmLR.coef_)
-print (lmLR.intercept_)
+### Paso 5: Modelo predictivo
 
-%matplotlib inline
-Ratios.plot(kind = "scatter", x = "EV/EBITDA" )
+El objetivo de este paso es crear un modelo que sea eficaz a la hora de predecir la variación en el "Market Capitalization" dados unas variaciones dadas de sus ratios financieros.
+Nuestro dataset será el creado en el paso 4a, "Ratios".
 
-###import matplotlib.pyplot as plt
-###import seaborn as sns
-###df_corr = df_corr.sort_values(ascending = True)
-###df_corr.plot.barh(figsize = (25,25), width = 0.45)
+from sklearn.feature_selection import RFE
+from sklearn.svm import SVR
+from sklearn.linear_model import LinearRegression
+import statsmodels.api as svm
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+#Regresión Múltiple con Scikit - learn
+data = Ratios
+feature_cols = Ratios_corr.columns[1:]
+X = data[feature_cols]
+y = data["Market Capitalization"]
+
+estimator = SVR(kernel ='linear')
+selector = RFE(estimator, 6, step = 1)
+selector= selector.fit(X,y)
+selector.ranking_
+
+lista = []
+for i in range(0,len(selector.ranking_)):
+    if selector.ranking_[i] == 1:
+        lista.append(i)
+        
+X_pred = X[X.columns[lista]]
+
+lm = LinearRegression()
+lm.fit(X_pred,y)
+print ( "El punto de intersección es el " + str(lm.intercept_))
+print("Los coeficientes de cada una de las variables son " + str(lm.coef_))
+print("La puntuación de este modelo es de " + str(lm.score(X_pred,y)))
