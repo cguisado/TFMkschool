@@ -733,11 +733,15 @@ def analysis_empresa(empresa):
     lista_empresas = df["Company Name"].unique().tolist()
     
     #Creamos un nuevo df con los datos de la empresa que queremos buscar.
-    df_analysis_empresa = df[df["Company Name"].str.contains("Agilent")]
+    df_analysis_empresa = df[df["Company Name"].str.contains(empresa)]
     industria_empresa = df_analysis_empresa["TRBC Industry Group"].iloc[0]
     industria_empresa = diccionario[industria_empresa]
 
     #Llamamos a otra función para sacar los datos de la industria a la que pertenece la empresa que queremos analizar
+    print("ANÁLISIS DE LA EMPRESA : " + empresa)
+    print()
+    print("Antes de comenzar a examinar la empresa es cuestión, tenemos que analizar su entorno, con el fin de conocer cuáles son los ratios con mayor relevancia dentro de la industria a la que pertenece y hacer una compración con la media de mercado.")
+    print()
     analysis_industria(industria_empresa)
     
 analysis_empresa("Agilent")
