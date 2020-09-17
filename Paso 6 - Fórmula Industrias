@@ -725,14 +725,19 @@ diccionario = {'Healthcare Equipment & Supplies' : 'Healthcare.xlsx', 'Metals & 
 def analysis_empresa(empresa):
     #Cargamos los datos de nuestro Dataset
     df = pd.read_excel('df.xlsx')
+    
     #Borramos aquellas columnas que no tengan ningún dato
     df = df.dropna(axis = 1, how = "all")
+    
     #Creamos variable con todos los nombres de las empresas que vamos a analizar
     lista_empresas = df["Company Name"].unique().tolist()
-    #Creamos
-    df_analysis_empresa = df[df["Company Name"].str.contains(empresa)]
-    industria_empresa = df_analysis_empresa["TRBC Industry Group"].unique().tolist()
-    industria_empresa = str(industria_empresa)
+    
+    #Creamos un nuevo df con los datos de la empresa que queremos buscar.
+    df_analysis_empresa = df[df["Company Name"].str.contains("Agilent")]
+    industria_empresa = df_analysis_empresa["TRBC Industry Group"].iloc[0]
     industria_empresa = diccionario[industria_empresa]
+
     #Llamamos a otra función para sacar los datos de la industria a la que pertenece la empresa que queremos analizar
     analysis_industria(industria_empresa)
+    
+analysis_empresa("Agilent")
