@@ -689,6 +689,28 @@ sns.set(font_scale = 1)
 hm = sns.heatmap(cm, cbar = True, annot = True, square = True, fmt = '.2f', annot_kws = {'size': 12}, yticklabels = cols.values, xticklabels = cols.values)
 plt.show()
 
+
+#Análisis Industria
+#Reemplazamos los valores nulos por la media del total
+df_analysis = df_ratios
+df_rt = pd.DataFrame()
+for i in range (2010,2020):
+    df_analysis = df_ratios[df_ratios["Field Name"].str.endswith(str(i))]
+    df_analysis = df_analysis.drop(["Company Name", "Field Name"], axis = 1)
+    cols = df_analysis.columns.tolist()
+    #Se reemplazan los valores nulos por la media
+    for x in cols:
+        df_analysis[x] = df_analysis[x].fillna(df_analysis[x].mean())
+
+    #Se sacan los datos estadísticos
+    df_analysis = pd.DataFrame(df_analysis.describe())
+    df_analysis = df_analysis[1:]
+    df_analysis = pd.DataFrame(df_analysis.iloc[0])
+    df_analysis = df_analysis.transpose()
+    #Cambiar mean por año
+    
+    df_rt = pd.concat([df_rt, df_analysis], axis = 0)
+
 Una vez que ya disponemos de aquellas variables con una mayor correlación con la varianza del valor de mercado de la empresa, nos disponemos a crear nuestro modelo.
 
 
