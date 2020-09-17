@@ -20,11 +20,13 @@ ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
 lista_industrias = os.listdir(r"C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/")
 lista_industrias[0]
 
-def analysis(industria):
+def analysis_industria(industria):
     #Leemos el archivo excel de la industria 'Healthcare'.
     ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
     df = pd.read_excel(ruta + industria)
-    print("Vamos a analizar la industria: " + industria)
+    punto = industria.index('.')
+    nombre_industria = industria[:punto]
+    print("Vamos a analizar la industria: " + nombre_industria + ".")
     
     #Borramos aquellas columnas de las cuales no tenemos ningún dato. 
     #Esto lo hacemos porque en el dataset vienen variables financieras las cuales no se estudian en todas las industrias.
@@ -621,7 +623,8 @@ def analysis(industria):
         df_analysis[i] = df_analysis[i].fillna(df_analysis[i].mean())
     df_analysis = df_analysis.describe()
     df_analysis = df_analysis[1:]
-    print("Aquí podemos ver un análisis de los ratios de la industria de: " + industria)
+
+    print("Aquí podemos ver un análisis de los ratios de la industria de: " + nombre_industria+".")
     print()
     print(df_analysis)
     print()
@@ -685,6 +688,7 @@ def analysis(industria):
     for i in range(1,len(data_)):
         lista.append(data_.iloc[i].name)
     print("Las variables financieras con mayor correlación con respecto a la varianza en su cotización son las siguientes: ")
+    print()
     print(lista)
     
 #Prueba
@@ -692,3 +696,43 @@ analysis("Healthcare.xlsx")
        
 for industria in range(0,len(lista_industrias)):
     analysis(lista_industrias[industria])
+    
+    
+    
+#Análisis Empresa
+#Creamos un diccionario con el nombre de las industrias y cómo se llama su documento.
+diccionario = {'Healthcare Equipment & Supplies' : 'Healthcare.xlsx', 'Metals & Mining' : 'Metals_Mining.xlsx', 'Passenger Transportation Services': 'Passenger_Transportation_Services.xlsx',
+               'Specialty Retailers' : 'Specialty_Retailers.xlsx',  'Computers, Phones & Household Electronics' : 'Computers_Phones_Household_Electronics.xlsx',
+               'Freight & Logistics Services' : 'Freight_Logistics_Services.xlsx' , 'Pharmaceuticals' : 'Pharmaceuticals.xlsx',
+               'Professional & Commercial Services' : 'Professional_Commercial_Services.xlsx', 'Food & Tobacco' : 'Food_Tobacco.xlsx' , 
+               'Software & IT Services' : 'Software_IT_Services.xlsx' , 'Multiline Utilities' : 'Multiline_Utilities.xlsx', 'Electric Utilities & IPPs' :'Electric_Utilities_IPPs.xlsx',
+               'Insurance' : 'Insurance.xlsx' , 'Machinery, Tools, Heavy Vehicles, Trains & Ships' : 'Machinery.xlsx' , 'Chemicals' : 'Chemicals.xlsx' , 
+               'Residential & Commercial REITs' : 'Residential_Commercial_REITs.xlsx', 'Aerospace & Defense' : 'Aerospace_Defense.xlsx' , 
+               'Investment Banking & Investment Services' : 'Investment_Banking_Investment_Services.xlsx', 'Communications & Networking' : 'Communications.xlsx' ,
+               'Semiconductors & Semiconductor Equipment' : 'Semiconductors.xlsx', 'Diversified Retail' : 'Diversified_Retail.xlsx' , 'Specialty Retailers' : 'Specialty_Retailers.xlsx' , 
+               'Healthcare Providers & Services': 'Healthcare_Providers_Services.xlsx' , 'Oil & Gas' : 'Oil_Gas.xlsx' , 'Electronic Equipment & Parts' : 'Electronic_Equipment_Parts.xlsx' ,
+               'Containers & Packaging' : 'Containers_Packaging.xlsx' , 'Water & Related Utilities' : 'Water_Related_Utilities.xlsx', 'Banking Services':'Banking_Services.xlsx', 'Homebuilding & Construction Supplies' : 'Homebuilding_Construction_Supplies.xlsx',
+               'Leisure Products' : 'Leisure_Products.xlsx' , 'Textiles & Apparel' : 'Textiles_Apparel.xlsx' , 'Beverages':'Beverages.xlsx', 'Coal' : "Coal.xlsx" , 
+               'Automobiles & Auto Parts' : 'Automobiles_Auto_Parts.xlsx' , 'Food & Drug Retailing' : 'Food_Drug_Retailing.xlsx' , 'Media & Publishing' : 'Media_Publishing.xlsx' , 
+               'Hotels & Entertainment Services' : 'Hotels_Entertainment_Services.xlsx' , 'Personal & Household Products & Services' : 'Personal_Household_PS.xlsx' , 
+               'Freight & Logistics Services' : 'Freight_Logistics_Services.xlsx', 'Telecommunications Services' : 'Telecommunications_Services.xlsx' , 
+               'Oil & Gas Related Equipment and Services' : 'Oil_Gas_Equipment_Services.xlsx' , 'Industrial Conglomerates' : 'Industrial_Conglomerates.xlsx' , 
+               'Biotechnology & Medical Research' : 'Biotechnology_Medical_Research.xlsx' , 'Diversified Industrial Goods Wholesalers': 'Diversified_Industrial_Goods.xlsx',
+               'Real Estate Operations' : 'Real_Estate_Operations.xlsx' , 'Construction & Engineering' : 'Construction_Engineering.xlsx', 'Paper & Forest Products Goods': 'Paper_Forest_Products.xlsx',
+               'Construction Materials' : 'Construction_Materials.xlsx' , 'Household Goods': 'Household_Goods.xlsx', 'Natural Gas Utilities' : 'Natural_Gas_Utilities.xlsx',
+               'Office Equipment' : 'Office_Equipment.xlsx'}
+
+def analysis_empresa(empresa):
+    #Cargamos los datos de nuestro Dataset
+    df = pd.read_excel('df.xlsx')
+    #Borramos aquellas columnas que no tengan ningún dato
+    df = df.dropna(axis = 1, how = "all")
+    #Creamos variable con todos los nombres de las empresas que vamos a analizar
+    lista_empresas = df["Company Name"].unique().tolist()
+    #Creamos
+    df_analysis_empresa = df[df["Company Name"].str.contains(empresa)]
+    industria_empresa = df_analysis_empresa["TRBC Industry Group"].unique().tolist()
+    industria_empresa = str(industria_empresa)
+    industria_empresa = diccionario[industria_empresa]
+    #Llamamos a otra función para sacar los datos de la industria a la que pertenece la empresa que queremos analizar
+    analysis_industria(industria_empresa)
