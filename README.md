@@ -1,4 +1,4 @@
-# TFMkschool
+# Data Science aplicado a los mercados financieros
 
 # Objetivo del estudio
 
