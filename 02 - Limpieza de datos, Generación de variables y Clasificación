@@ -743,8 +743,6 @@ Real_Estate_Operations = df[df['TRBC Industry Group'] == 'Real Estate Operations
 Real_Estate_Operations.to_excel(ruta + 'Real_Estate_Operations.xlsx', header=True, index=False)
 Construction_Engineering = df[df['TRBC Industry Group'] == 'Construction & Engineering']
 Construction_Engineering.to_excel(ruta + 'Construction_Engineering.xlsx', header=True, index=False)
-Paper_Forest_Products = df[df['TRBC Industry Group'] == 'Paper & Forest Products Goods']
-Paper_Forest_Products.to_excel(ruta + 'Paper_Forest_Products.xlsx', header=True, index=False)
 Construction_Materials = df[df['TRBC Industry Group'] == 'Construction Materials']
 Construction_Materials.to_excel(ruta + 'Construction_Materials.xlsx', header=True, index=False)
 Household_Goods = df[df['TRBC Industry Group'] == 'Household Goods']
@@ -759,8 +757,6 @@ Renewable_Energy = df[df['TRBC Industry Group'] == 'Renewable Energy']
 Renewable_Energy.to_excel(ruta + 'Renewable_Energy.xlsx', header=True, index=False)
 Transport_Infraestructure = df[df['TRBC Industry Group'] == 'Transport Infrastructure']
 Transport_Infraestructure.to_excel(ruta + 'Transport_Infraestructure.xlsx', header=True, index=False)
-Investment_Holding_Companies = df[df['TRBC Industry Group'] == 'Investment Holding Companies']
-Investment_Holding_Companies.to_excel(ruta + 'Investment_Holding_Companies.xlsx', header=True, index=False)
 
 El siguiente paso consistirá en abrir una de las industrias, examinarla y realizar la limpieza de datos necesaria. 
 
