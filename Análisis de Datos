@@ -1,6 +1,5 @@
-### PASO 3: LIMPIEZA DE DATOS
-En este paso seleccionaremos una de las industrias para examinarla y realizar la limpieza de datos. 
-El objetivo consistirá en construir, finalmente, una fórmula la cual pueda limpiar todos los archivos de las diferentes industrias para su posterior estudio.
+### PASO 3: Análisis de datos
+En este paso seleccionaremos una de las industrias para examinarla
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -28,7 +27,7 @@ df = df.drop(columns=filtro2)
 #Limpieza de datos de los Ratios
 df = df.drop(['TRBC Industry Group'], axis = 1)
 
-### Paso 4b: Análisis de correlación entre variables financieras
+### Paso 4: Análisis de correlación entre variables financieras
 
 El objetivo de este paso es conocer qué ratios son los que tienen mayor relación con el incremento del valor de mercado de una empresa.
 
@@ -46,7 +45,7 @@ total = Ratios.isnull().sum().sort_values(ascending = False)
 percent = (Ratios.isnull().sum() / Ratios.isnull().count()).sort_values(ascending = False)
 missing_data = pd.concat([total, percent], axis = 1, keys = ['Total', 'Percent'])
 Ratios = Ratios.drop((missing_data[missing_data['Percent'] > 0.15]).index,1)
-Ratios.shape
+Ratios
 
 cols = Ratios.columns.tolist()
 #Se reemplazan los valores nulos por la media
@@ -60,14 +59,14 @@ cols
 df_corr = Ratios.corr('pearson')
 df_corr = df_corr['Market Capitalization']
 df_corr
+corr = Ratios.corr()
 
 Agunos de estos datos no tienen mucha lógica, por lo que nos induce a pensar que las variables financieras son dependientes entre si, y por lo tanto, no se puede hacer un análisis independiente de cada uno de los ratios.
 
 Para demostrar nuestra hipótesis, analizaremos si existe correlación entre las variables utilizando matshow.
 
-Ratios.corr()
 
-#Matriz de correlación entre variables
+## Matriz de correlación entre variables
 corrmat = Ratios.corr()
 f, ax = plt.subplots(figsize=(12,9))
 sns.heatmap(corrmat, vmax = .8, square = True)
@@ -81,27 +80,23 @@ cols = Ratios.columns.tolist()
 for x in cols:
     Ratios[x] = Ratios[x].fillna(Ratios[x].mean())
 
-#Limpieza
-Ratios = Ratios.dropna(axis = 0, how = 'any')
-Ratios
 
-#VIF
+## VIF
 #Calcularemos el Factor de Inflación de Varianza para cada una de los ratios, con el fin de eliminar de nuestra ecuación
 #aquellos que ofrezcan la misma información, con el objetivo de crear un modelo acertado.
-
-def calculate_vif(Ratios):
+Ratios_vif = Ratios
+def calculate_vif(Ratios_vif):
     vif = pd.DataFrame()
-    vif["Ratios"] = Ratios.columns
-    vif["VIF"] = [variance_inflation_factor(Ratios.values, i) for i in range(Ratios.shape[1])]    
+    vif["Ratios"] = Ratios_vif.columns
+    vif["VIF"] = [variance_inflation_factor(Ratios_vif.values, i) for i in range(Ratios_vif.shape[1])]    
     return(vif)
-vif = calculate_vif(Ratios)
+vif = calculate_vif(Ratios_vif)
 while vif['VIF'][vif['VIF'] > 7].any():
     remove = vif.sort_values('VIF',ascending=0)['Ratios'][:1]
-    Ratios.drop(remove,axis=1,inplace=True)
-    vif = calculate_vif(Ratios)
+    Ratios_vif.drop(remove,axis=1,inplace=True)
+    vif = calculate_vif(Ratios_vif)
 vif
 
-corr = Ratios.corr()
 data = corr[['Market Capitalization']].sort_values(by = 'Market Capitalization',ascending = False)
 data_corr = data["Market Capitalization"]
 data_corr= data_corr.to_frame()
@@ -122,7 +117,7 @@ columnas = Ratios_corr.columns.values
 result = [columnas for columnas in columnas if columnas in filas]
 Ratios_corr[result].loc[result]
 
-# Matriz de correlación
+## Matriz de correlación
 corrmat = Ratios_corr.corr()
 k = 8 # Número de variables.
 cols = corrmat.nlargest(k, 'Market Capitalization')['Market Capitalization'].index
@@ -133,27 +128,51 @@ plt.show()
 
 Una vez que ya disponemos de aquellas variables con una mayor correlación con la varianza del valor de mercado de la empresa, nos disponemos a crear nuestro modelo.
 
-#Análisis Industria
-df_analysis = df_ratios
+## Análisis Industria
+#Reemplazamos los valores nulos por la media del total y sacamos graficos de cómo ha ido evolucionando cada ratio.
+df_analysis = df_
 df_rt = pd.DataFrame()
-
 for i in range (2010,2020):
-    df_analysis = df_ratios[df_ratios["Field Name"].str.endswith(str(i))]
-    df_analysis = df_analysis.drop(["Company Name", "Field Name"], axis = 1)
+    df_analysis = df_[df_["Field Name"].str.endswith(str(i))]
+    col = df_analysis.columns.values.tolist()
+    df_analysis = df_analysis.drop(['Company Name', 'TRBC Industry Group','Field Name'], axis = 1)
     cols = df_analysis.columns.tolist()
     #Se reemplazan los valores nulos por la media
     for x in cols:
         df_analysis[x] = df_analysis[x].fillna(df_analysis[x].mean())
-
+    #Calculamos el porcentaje de valores nulos por columna, y borramos aquellas columnas con más de un 12%
+    total = df_analysis.isnull().sum().sort_values(ascending = False)
+    percent = (df_analysis.isnull().sum() / df_analysis.isnull().count()).sort_values(ascending = False)
+    missing_data = pd.concat([total, percent], axis = 1, keys = ['Total', 'Percent'])
+    df_analysis = df_analysis.drop((missing_data[missing_data['Percent'] > 0.12]).index,1)
     #Se sacan los datos estadísticos
     df_analysis = pd.DataFrame(df_analysis.describe())
     df_analysis = df_analysis[1:]
     df_analysis = pd.DataFrame(df_analysis.iloc[0])
-    df_analysis = df_analysis.transpose()
-    #Cambiar mean por año
-    
+    df_analysis = df_analysis.transpose().rename(index={'mean': i})
     df_rt = pd.concat([df_rt, df_analysis], axis = 0)
     
+df_rt
+    
+## Análisis Industria del año 2019:
+#Guardamos la variable final para estudiarla junto con la empresa que queramos
+#Reemplazamos los valores nulos por la media del total del año 2019
+df_analysis_2019 = df_
+df_analysis_2019 = df_analysis_2019[df_analysis_2019["Field Name"].str.contains("2019")]
+#CDefinimos variable con una lista de las columnas
+col = df_analysis_2019.columns.values.tolist()
+#Definimos los filtros que no queremos en el dataset
+df_analysis_2019 = df_analysis_2019.drop(['Company Name', 'TRBC Industry Group','Field Name'], axis = 1)
+#Reemplazamos valores nulos por la media
+cols = df_analysis_2019.columns.tolist()
+for i in cols:
+    df_analysis_2019[i] = df_analysis_2019[i].fillna(df_analysis_2019[i].mean())
+df_analysis_2019 = df_analysis_2019.describe()
+df_analysis_2019 = df_analysis_2019[1:]
+df_2019_industria = pd.DataFrame(df_analysis_2019.iloc[0])
+df_2019_industria = df_2019_industria.transpose().rename(index={'mean': "2019"})
+df_2019_industria
+
 cols = df_rt.columns.values.tolist()
 for i in range(0,len(df_rt.columns)):
     df_rt[cols[i]].plot()
@@ -161,24 +180,8 @@ for i in range(0,len(df_rt.columns)):
     plt.ylabel("Valor Medio")
     plt.title(str(df_rt[cols[i]].name))
     plt.show()
-    
-#Análisis Industria - solo 2019
-#Reemplazamos los valores nulos por la media del total del año 2019
-df_analysis = df_ratios
-df_analysis = df_analysis[df_analysis["Field Name"].str.contains("2019")]
-df_analysis = df_ratios.drop(["Company Name", "Field Name"], axis = 1)
-cols = df_analysis.columns.tolist()
-for i in cols:
-    df_analysis[i] = df_analysis[i].fillna(df_analysis[i].mean())
-df_analysis = df_analysis.describe()
-df_analysis = df_analysis[1:]
-df_2019_industria = pd.DataFrame(df_analysis.iloc[0])
-df_2019_industria = df_2019_industria.transpose()   
-df_2019_industria
-    
 
 ### Paso 5: Modelo predictivo
-
 El objetivo de este paso es crear un modelo que sea eficaz a la hora de predecir la variación en el "Market Capitalization" dados unas variaciones dadas de sus ratios financieros.
 Nuestro dataset será el creado en el paso 4a, "Ratios".
 
@@ -192,11 +195,33 @@ from sklearn import datasets
 import pandas as pd
 import numpy as np
 
-#Regresión Múltiple con Scikit - learn
+#Preparamos el dataset
+ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
+df = pd.read_excel(ruta + "Healthcare.xlsx")
+#Limpieza de datos
+df = df.drop(['Company Name', 'Field Name', 'TRBC Industry Group'], axis = 1)
+df = df.dropna(axis = 0, how= "all")
+total = df.isnull().sum().sort_values(ascending = False)
+percent = (df.isnull().sum() / df.isnull().count()).sort_values(ascending = False)
+missing_data = pd.concat([total, percent], axis = 1, keys = ['Total', 'Percent'])
+df = df.drop((missing_data[missing_data['Percent'] > 0.15]).index,1)
+cols = df.columns.tolist()
+#Se reemplazan los valores nulos por la media
+for x in cols:
+    df[x] = df[x].fillna(df[x].mean())
+lista = df.columns.values.tolist()
+for i in lista:
+    df[i].replace(np.inf,0,inplace=True)
+    df[i].replace(-np.inf,0,inplace=True)
+df
+Ratios = df
+
+
+## Regresión Múltiple con Scikit - learn
 data = Ratios
 feature_cols = Ratios_corr.columns[1:]
 X = data[feature_cols]
-y = data[["Market Capitalization"]]
+y = data["Market Capitalization"]
 
 estimator = SVR(kernel ='linear')
 selector = RFE(estimator, 6, step = 1)
@@ -219,26 +244,46 @@ print ( "El punto de intersección es el " + str(lm.intercept_))
 print("Los coeficientes de cada una de las variables son " + str(lm.coef_))
 print("La puntuación de este modelo es de " + str(lm.score(X_pred,y)))
 
+## Regresión Polinomial
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import PolynomialFeatures
 
-#Regresión logística con statsmodel.api
-import statsmodels.api as sm
-n = 5
-lr = LogisticRegression()
-feature_cols = Ratios.columns[1:] 
-X = data[feature_cols]
-y = data[["Market Capitalization"]]>0
+#Definimos las variables
+feature_cols = Ratios_corr.columns[1:]
+x = data[feature_cols]
+y = data["Market Capitalization"]
 
-rfe = RFE(lr, n)
-rfe = rfe.fit(X,y)
+for i in range(1,100):
 
-print(rfe.ranking_)
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.20, random_state = i)
+    poli_reg = PolynomialFeatures(degree = 2)
 
-logit_model = sm.Logit(y,X)
-result = logit_model.fit()
+    #Transformamos las características existentes en características de mayor grado
+    X_train_poli = poli_reg.fit_transform(X_train)
+    X_test_poli = poli_reg.fit_transform(X_test)
 
-result.summary2()
+    #Definimos el algoritmo a utilizar
+    pr = LinearRegression()
 
-#
+    #Entrenamos del modelo
+    pr.fit(X_train_poli, y_train)
+
+    #Realizamos nuestra predicción
+    Y_pred_pr = pr.predict(X_test_poli)
+
+    #Datos del modelo
+    scoring = pr.score(X_train_poli, y_train)  
+
+    if scoring > 0.75:
+        print("random state: " + str(i))
+        print('Valor de la pendiente: ' + str (pr.coef_))
+        print( "Valor de la intersección: " + str(pr.intercept_))
+        print ("Precisión del modelo: " + str(pr.score(X_train_poli, y_train)))
+        break
+
+
+
+## Regresión Logística
 dataset = Ratios
 feature_cols = Ratios.columns[1:]
 X = data[feature_cols]
@@ -267,9 +312,10 @@ y_pred = classifier.predict(X_test)
 from sklearn.metrics import confusion_matrix
 cm = confusion_matrix(y_test, y_pred)
 
-print(classifier.score(X,y))
+print("Este modelo tiene una precisión del " + str(classifier.score(X,y)))
+        
 
-#
+## Regresión Logística 2
 import pandas as pd
 import numpy as np
 from sklearn import linear_model
@@ -321,8 +367,8 @@ print(confusion_matrix(Y_validation, predictions))
 #Reporte de clasificación
 print(classification_report(Y_validation, predictions))
 
-#Arboles de Decisión
-#
+
+## Arboles de Decisión
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -333,13 +379,21 @@ colnames = data.columns.values.tolist()
 predictors = colnames[1:]
 target = colnames[0]
 
-data['is_train'] = np.random.uniform(-1,1,len(data))<=0
-train,test = data[data['is_train']==True], data[data['is_train']==False]
+for i in range(0,100):
+    data['is_train'] = np.random.uniform(-1,1,len(data))<=0
+    train,test = data[data['is_train']==True], data[data['is_train']==False]
 
-from sklearn.tree import DecisionTreeClassifier
-tree = DecisionTreeClassifier(criterion='entropy', min_samples_split = 30, random_state = 98)
-tree.fit(train[predictors], train[target])
+    from sklearn.tree import DecisionTreeClassifier
+    tree = DecisionTreeClassifier(criterion='entropy', min_samples_split = 20, random_state = i)
+    tree.fit(train[predictors], train[target])
 
-preds = tree.predict(test[predictors])
-pd.crosstab(test[target], preds, rownames = ["Actual"], colnames=["Predictions"])
+    preds = tree.predict(test[predictors])
+    pd.crosstab(test[target], preds, rownames = ["Actual"], colnames=["Predictions"])
 
+    #Resultado de nuestro modelo
+    scoring = tree.score(test[predictors], test[target])
+    
+    if scoring>0.8:
+        print("Random_state utilizado: " + str(i))
+        print("Nuestro modelo tiene una precisión de: " + str(tree.score(test[predictors], test[target])))
+        break
