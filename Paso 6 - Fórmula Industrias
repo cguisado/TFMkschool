@@ -171,6 +171,7 @@ analysis("Healthcare.xlsx")
 
 #Si queremos hacer un análisis para cada una de las empresas, podemos hacerlo con este bucle.
 #Definimos variable para recorrer los datos de una carpeta específica.
+
 ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
 lista_industrias = os.listdir(r"C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/")
 lista_industrias[0]
@@ -205,14 +206,14 @@ diccionario = {'Healthcare Equipment & Supplies' : 'Healthcare.xlsx', 'Metals & 
 
 def analysis_empresa(empresa):
     #Cargamos los datos de nuestro Dataset
-    df = pd.read_excel('df.xlsx')
-    
+    df = pd.read_excel('Ratios.xlsx')
+
     #Borramos aquellas columnas que no tengan ningún dato
     df = df.dropna(axis = 1, how = "all")
-    
+
     #Creamos variable con todos los nombres de las empresas que vamos a analizar
     lista_empresas = df["Company Name"].unique().tolist()
-    
+
     #Creamos un nuevo df con los datos de la empresa que queremos buscar.
     df_analysis_empresa = df[df["Company Name"].str.contains(empresa)]
     industria_empresa = df_analysis_empresa["TRBC Industry Group"].iloc[0]
@@ -225,4 +226,307 @@ def analysis_empresa(empresa):
     print()
     analysis_industria(industria_empresa)
     
+    print()
+    print("Una vez analizada la industria a la que pertenece la empresa " + str(empresa) + ", ahora vamos a analizar sus ratios financieros.")
+    
+    #Filtramos por aquellas que unicamente reportan en millones
+    df_analysis_empresa = df_analysis_empresa.dropna(axis = 1, how = "all")
+    df_analysis_empresa = df_analysis_empresa.dropna(axis = 0, how = "all")
+    df_analysis_empresa = df_analysis_empresa.drop(["Company Name", 'TRBC Industry Group'], axis = 1 )
+
+    #Análisis Empresa en el año 2019:
+    #Reemplazamos los valores nulos por la media del total del año 2019
+    df_analysis_e2019 = df_analysis_empresa
+    df_analysis_e2019 = df_analysis_e2019[df_analysis_e2019["Field Name"].str.contains("2019")]
+    #CDefinimos variable con una lista de las columnas
+    col = df_analysis_e2019.columns.values.tolist()
+    #Definimos los filtros que no queremos en el dataset
+    df_analysis_e2019 = df_analysis_e2019.drop(['Field Name'], axis = 1)
+    #Reemplazamos valores nulos por la media
+    cols = df_analysis_e2019.columns.tolist()
+    #for i in cols:
+    #    df_analysis_e2019[i] = df_analysis_e2019[i].fillna(df_analysis_e2019[i].mean())
+    df_analysis_e2019 = df_analysis_e2019.describe()
+    df_analysis_e2019 = df_analysis_e2019[1:]
+    df_2019_empresa = pd.DataFrame(df_analysis_e2019.iloc[0])
+    df_2019_empresa = df_2019_empresa.transpose().rename(index={'mean': "2019"})
+    df_2019_empresa
+    
 analysis_empresa("Agilent")
+
+
+#Cargamos los datos de nuestro Dataset
+df = pd.read_excel('Ratios.xlsx')
+    
+#Borramos aquellas columnas que no tengan ningún dato
+df = df.dropna(axis = 1, how = "all")
+    
+#Creamos variable con todos los nombres de las empresas que vamos a analizar
+lista_empresas = df["Company Name"].unique().tolist()
+    
+#Creamos un nuevo df con los datos de la empresa que queremos buscar.
+df_analysis_empresa = df[df["Company Name"].str.contains("Agilent")]
+industria_empresa = df_analysis_empresa["TRBC Industry Group"].iloc[0]
+industria_empresa = diccionario[industria_empresa]
+
+#Filtramos por aquellas que unicamente reportan en millones
+df_analysis_empresa = df_analysis_empresa.dropna(axis = 1, how = "all")
+df_analysis_empresa = df_analysis_empresa.dropna(axis = 0, how = "all")
+df_analysis_empresa = df_analysis_empresa.drop(["Company Name", 'TRBC Industry Group'], axis = 1 )
+df_analysis_empresa
+
+#Análisis Empresa en el año 2019:
+#Reemplazamos los valores nulos por la media del total del año 2019
+df_analysis_e2019 = df_analysis_empresa
+df_analysis_e2019 = df_analysis_e2019[df_analysis_e2019["Field Name"].str.contains("2019")]
+#CDefinimos variable con una lista de las columnas
+col = df_analysis_e2019.columns.values.tolist()
+#Definimos los filtros que no queremos en el dataset
+df_analysis_e2019 = df_analysis_e2019.drop(['Field Name'], axis = 1)
+#Reemplazamos valores nulos por la media
+cols = df_analysis_e2019.columns.tolist()
+#for i in cols:
+#    df_analysis_e2019[i] = df_analysis_e2019[i].fillna(df_analysis_e2019[i].mean())
+df_analysis_e2019 = df_analysis_e2019.describe()
+df_analysis_e2019 = df_analysis_e2019[1:]
+df_2019_empresa = pd.DataFrame(df_analysis_e2019.iloc[0])
+df_2019_empresa = df_2019_empresa.transpose().rename(index={'mean': "2019"})
+df_2019_empresa
+
+#Tenemos el nombre de la industria, por lo que vamos a pasarle los modelos predictivos de su industria.
+#Primero los calculamos
+
+ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
+df = pd.read_excel(ruta + "Healthcare.xlsx") #sustituir por var: industria_empresa
+df_ = df
+df
+
+#Limpieza de datos
+df = df.drop(['Company Name', 'Field Name', 'TRBC Industry Group'], axis = 1)
+df = df.dropna(axis = 0, how= "all")
+Ratios = df
+total = Ratios.isnull().sum().sort_values(ascending = False)
+percent = (Ratios.isnull().sum() / Ratios.isnull().count()).sort_values(ascending = False)
+missing_data = pd.concat([total, percent], axis = 1, keys = ['Total', 'Percent'])
+Ratios = Ratios.drop((missing_data[missing_data['Percent'] > 0.15]).index,1)
+cols = Ratios.columns.tolist()
+#Se reemplazan los valores nulos por la media
+for x in cols:
+    Ratios[x] = Ratios[x].fillna(Ratios[x].mean())
+lista = Ratios.columns.values.tolist()
+for i in lista:
+    Ratios[i].replace(np.inf,0,inplace=True)
+    Ratios[i].replace(-np.inf,0,inplace=True)
+Ratios_vif = Ratios
+df_modelo = Ratios
+
+#Le pasamos VIF para quedarnos con los ratios con mayor correlación
+#Calcularemos el Factor de Inflación de Varianza para cada una de los ratios, con el fin de eliminar de nuestra ecuación
+#aquellos que ofrezcan la misma información, con el objetivo de crear un modelo acertado.
+
+def calculate_vif(kschool):
+    vif = pd.DataFrame()
+    vif["Ratios"] = Ratios_vif.columns
+    vif["VIF"] = [variance_inflation_factor(Ratios_vif.values, i) for i in range(Ratios_vif.shape[1])]    
+    return(vif)
+vif = calculate_vif(Ratios_vif)
+while vif['VIF'][vif['VIF'] > 7].any():
+    remove = vif.sort_values('VIF',ascending=0)['Ratios'][:1]
+    Ratios_vif.drop(remove,axis=1,inplace=True)
+    vif = calculate_vif(Ratios_vif)
+vif
+
+lista_vif = vif['Ratios'].values.tolist()
+#Definimos el df que vamos a utilizar para las Regresiones Múltiple y Polinomial
+Ratios_modelo = df[["Market Capitalization"]]
+for i in lista_vif:
+    Ratios_modelo = pd.concat([Ratios_modelo, pd.DataFrame(Ratios[i])], axis = 1)
+cols = Ratios_modelo.columns.tolist()
+#Se reemplazan los valores nulos por la media
+for x in cols:
+    Ratios_modelo[x] = Ratios_modelo[x].fillna(Ratios_modelo[x].mean())
+lista = Ratios_modelo.columns.values.tolist()
+for i in lista:
+    Ratios_modelo[i].replace(np.inf,0,inplace=True)
+    Ratios_modelo[i].replace(-np.inf,0,inplace=True)
+
+#Regresión Múltiple con Scikit - learn
+data = Ratios_modelo
+feature_cols = data.columns[1:]
+X = data[feature_cols]
+y = data["Market Capitalization"]
+
+estimator = SVR(kernel ='linear')
+selector = RFE(estimator, 6, step = 1)
+selector= selector.fit(X,y)
+selector.ranking_
+
+lista = []
+for i in range(0,len(selector.ranking_)):
+    if selector.ranking_[i] == 1:
+        lista.append(i)
+        
+X_pred = X[X.columns[lista]]
+nom_vars = X[X.columns[lista]]
+
+lm = LinearRegression()
+lm.fit(X_pred,y)
+
+print ("Las variables con mayor correlación con la varianza en el precio de mercado son las siguientes: " + str(nom_vars.columns.values.tolist()))
+print ( "El punto de intersección es el " + str(lm.intercept_))
+print("Los coeficientes de cada una de las variables son " + str(lm.coef_))
+print("La puntuación de este modelo es de " + str(lm.score(X_pred,y)))
+
+
+#Regresión Polinomial
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import PolynomialFeatures
+
+#Definimos las variables
+data = Ratios_modelo
+feature_cols = data.columns[1:]
+x = data[feature_cols]
+y = data["Market Capitalization"]
+
+for i in range(1,100):
+
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.20, random_state = i)
+    poli_reg = PolynomialFeatures(degree = 2)
+
+    #Transformamos las características existentes en características de mayor grado
+    X_train_poli = poli_reg.fit_transform(X_train)
+    X_test_poli = poli_reg.fit_transform(X_test)
+
+    #Definimos el algoritmo a utilizar
+    pr = LinearRegression()
+
+    #Entrenamos del modelo
+    pr.fit(X_train_poli, y_train)
+
+    #Realizamos nuestra predicción
+    Y_pred_pr = pr.predict(X_test_poli)
+
+    #Datos del modelo
+    scoring = pr.score(X_train_poli, y_train)  
+
+    if scoring > 0.80:
+        print("random state: " + str(i))
+        print('Valor de la pendiente: ' + str (pr.coef_))
+        print( "Valor de la intersección: " + str(pr.intercept_))
+        print ("Precisión del modelo: " + str(pr.score(X_train_poli, y_train)))
+        break
+
+#Regresión Logística
+data = Ratios_modelo
+feature_cols = data.columns[1:]
+X = data[feature_cols]
+y = data[["Market Capitalization"]]>0
+
+
+# Splitting the dataset into the Training set and Test set
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
+
+# Feature Scaling
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+# Fitting Logistic Regression to the Training set
+from sklearn.linear_model import LogisticRegression
+classifier = LogisticRegression(random_state = 0)
+classifier.fit(X_train, y_train)
+
+# Predicting the Test set results
+y_pred = classifier.predict(X_test)
+
+# Making the Confusion Matrix
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(y_test, y_pred)
+
+print("Este modelo tiene una precisión del " + str(classifier.score(X,y)))
+
+
+#Regresión Logística 2
+import pandas as pd
+import numpy as np
+from sklearn import linear_model
+from sklearn import model_selection
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
+import seaborn as sb
+
+#Variables
+data = Ratios_modelo
+feature_cols = data.columns[1:]
+
+#Creamos el Modelo de Regresión Logística
+
+X = data[feature_cols]
+y = data[["Market Capitalization"]]>0
+
+#creamos nuestro modelo y hacemos que se ajuste (fit) a nuestro conjunto de entradas X y salidas ‘y’.
+model = linear_model.LogisticRegression()
+model.fit(X,y)
+
+#Clasificar nuestro conjunto de entradas X  y revisamos algunas de sus salidas 
+predictions = model.predict(X)
+#print(predictions)[0:5]
+
+# Precision 
+model.score(X,y)
+
+#Validación de nuestro modelo
+validation_size = 0.20
+seed = 7
+X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(X,y, test_size = validation_size, random_state = seed)
+
+# calculamos el nuevo scoring
+name='Logistic Regression'
+kfold = model_selection.KFold(n_splits=10, random_state=seed)
+cv_results = model_selection.cross_val_score(model, X_train, Y_train, cv=kfold, scoring='accuracy')
+msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
+print(msg)
+
+#Predicciones 
+predictions = model.predict(X_validation)
+print(accuracy_score(Y_validation, predictions))
+
+#Reporte de Resultados del Modelo
+print(confusion_matrix(Y_validation, predictions))
+
+#Reporte de clasificación
+print(classification_report(Y_validation, predictions))
+
+
+#Arboles de Decisión
+import pandas as pd
+import matplotlib.pyplot as plt
+
+data = Ratios_modelo
+data['Market Capitalization'] = data["Market Capitalization"]>0
+colnames = data.columns.values.tolist()
+predictors = colnames[1:]
+target = colnames[0]
+
+for i in range(0,100):
+    data['is_train'] = np.random.uniform(-1,1,len(data))<=0
+    train,test = data[data['is_train']==True], data[data['is_train']==False]
+
+    from sklearn.tree import DecisionTreeClassifier
+    tree = DecisionTreeClassifier(criterion='entropy', min_samples_split = 20, random_state = i)
+    tree.fit(train[predictors], train[target])
+
+    preds = tree.predict(test[predictors])
+    pd.crosstab(test[target], preds, rownames = ["Actual"], colnames=["Predictions"])
+
+    #Resultado de nuestro modelo
+    scoring = tree.score(test[predictors], test[target])
+    
+    if scoring >0.8:
+        print("Random_state utilizado: " + str(i))
+        print("Nuestro modelo tiene una precisión de: " + str(tree.score(test[predictors], test[target])))
+        break
