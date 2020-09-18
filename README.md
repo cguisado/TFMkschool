@@ -48,7 +48,34 @@ En el segundo paso, los objetivos son los siguientes:
 - Calcular, por cada uno de los ratios, la varianza que ha tenido con respecto al año anterior. Dado que el objetivo final del proyecto es analizar la correlación de los ratios con la varianza en el precio de mercado de una empresa de un año para otro, ha sido necesario este cálculo.
 - Dividir el dataset resultante con todos los ratios entre tantas industrias como queramos analizar. Cada industria se guardará en un dataset en una ruta dada.
 
-4. 
+
+4. Análisis de correlación entre variables financieras
+El módulo en el que se hace este análisis es el que se llama "Paso 3-4- Análisis de datos y Modelo predictivo."El objetivo de este paso es conocer qué ratios son los que tienen mayor relación con el incremento del valor de mercado de una empresa.
+
+Al hacer un primer análisis de la industria, nos damos cuenta que existe un problema de colinealidad. Es decir, existen variables las cuales son dependientes enre sí y aportan la misma información al estudio.
+
+La manera de solucionarlo es con un estudio del factor de inflación de la varianza. Aquellas variables con un alto "VIF" serán eliminadas de nuestro modelo, con el objetivo de conocer cuáles son las que mayor correlación, ya sea positiva o negativa, tienen con respecto al "Market Value".
+
+Una vez ya tenemos los ratios correctos, los ordenamos y realizamos una matriz de correlación con respecto a la varianza de un año a otro en "Market Capitalization".
+
+Para analizar la industria más profundamente, crearemos un dataframe con la media de los ratios durante los últimos años, para así, con un único vistazo, conocer cómo se está comportando la industria.
+
+
+5. Modelos predictivos
+
+
+
+6. Visualización
+
+
+
+
+
+
+
+
+
+
 
 
 
