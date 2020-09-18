@@ -11,8 +11,6 @@ warnings.filterwarnings('ignore')
 %matplotlib inline
 
 df = pd.read_excel('df.xlsx')
-#Primero vamos a filtrar todos aquellas empresas las cuales la unidad de reporte son millones.
-#df = df[df['Reporting Unit'] == 'Millions']
 #Borramos aquellas columnas de las cuales no tenemos ningún dato. 
 #Esto lo hacemos porque en el dataset vienen variables financieras las cuales no se estudian en todas las industrias.
 df_ = df.dropna(axis = 1, how = "all")
@@ -212,6 +210,7 @@ try:
 except KeyError:
     pass
 
+
 #Comprobamos que el DataFrame df_ratios está correcto
 df_ratios.columns.values
 
@@ -233,6 +232,7 @@ def func(df,columnName):
     df[columnName] = listaValues[::-1]
     return df
     
+#Tarda 10minutos
 #Creamos un dataset en el cual iremos añadiendo las columnas que vamos calculando utilizando la función "func".
 Ratios = df_ratios[["Company Name","Field Name",'TRBC Industry Group']]
 
@@ -244,10 +244,11 @@ try:
     MktCap_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         MktCap_ratio[i] = func(MktCap[MktCap["Company Name"]==companies[i]],"Market Capitalization")
-    
     dfMktCap= MktCap_ratio[0]
+    
     for i in range(1,len(MktCap_ratio)):
         dfMktCap = pd.concat([dfMktCap,MktCap_ratio[i]])
+    dfMktCap = dfMktCap.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfMktCap], axis = 1)  
 except KeyError:
     pass    
@@ -258,9 +259,12 @@ try:
     BookValue_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         BookValue_ratio[i] = func(Book_Value[Book_Value["Company Name"]==companies[i]],"BookValue_per_share")
+   
     dfBookValue= BookValue_ratio[0]
+    
     for i in range(1,len(BookValue_ratio)):
         dfBookValue = pd.concat([dfBookValue,BookValue_ratio[i]])
+    dfBookValue = dfBookValue.drop(["Company Name","Field Name"], axis = 1) 
     Ratios = pd.concat([Ratios, dfBookValue], axis = 1)
 except KeyError:
     pass 
@@ -271,10 +275,12 @@ try:
     EV_EBITDA_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         EV_EBITDA_ratio[i] = func(EV_EBITDA[EV_EBITDA["Company Name"]==companies[i]],"EV/EBITDA")
+ 
     dfEV_EBITDA= EV_EBITDA_ratio[0]
     
     for i in range(1,len(EV_EBITDA_ratio)):
         dfEV_EBITDA = pd.concat([dfEV_EBITDA,EV_EBITDA_ratio[i]])
+    dfEV_EBITDA = dfEV_EBITDA.drop(["Company Name","Field Name"], axis = 1)   
     Ratios = pd.concat([Ratios, dfEV_EBITDA], axis = 1)
 except KeyError:
     pass 
@@ -285,10 +291,13 @@ try:
     PE_Growth_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         PE_Growth_ratio[i] = func(PE_Growth[PE_Growth["Company Name"]==companies[i]],"PE Growth Ratio")
-        
+    
     dfPE_Growth= PE_Growth_ratio[0]
+        
+
     for i in range(1,len(PE_Growth_ratio)):
         dfPE_Growth = pd.concat([dfPE_Growth,PE_Growth_ratio[i]])
+    dfMktCap = dfMktCap.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfPE_Growth], axis = 1)
     
 except KeyError:
@@ -300,10 +309,12 @@ try:
     Pretax_ROA_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         Pretax_ROA_ratio[i] = func(Pretax_ROA[Pretax_ROA["Company Name"]==companies[i]],"Pretax ROA")
-        
+     
     dfPretax_ROA= Pretax_ROA_ratio[0]
+       
     for i in range(1,len(Pretax_ROA_ratio)):
         dfPretax_ROE = pd.concat([dfPretax_ROA,Pretax_ROA_ratio[i]])
+    dfPretax_ROA = dfPretax_ROA.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfPretax_ROA], axis = 1)  
 except KeyError:
     pass    
@@ -317,8 +328,10 @@ try:
         Pretax_ROE_ratio[i] = func(Pretax_ROE[Pretax_ROE["Company Name"]==companies[i]],"Pretax ROE")
 
     dfPretax_ROE= Pretax_ROE_ratio[0]
+    
     for i in range(1,len(Pretax_ROE_ratio)):
         dfPretax_ROE = pd.concat([dfPretax_ROE,Pretax_ROE_ratio[i]])
+    dfPretax_ROE = dfPretax_ROE.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfPretax_ROE], axis = 1)
     
 except KeyError:
@@ -330,10 +343,12 @@ try:
     ROA_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         ROA_ratio[i] = func(ROA[ROA["Company Name"]==companies[i]],"Return On Avg Tot Assets")
-        
+
     dfROA= ROA_ratio[0]
+     
     for i in range(1,len(ROA_ratio)):
         dfROA = pd.concat([dfROA,ROA_ratio[i]])
+    dfROA = dfROA.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfROA], axis = 1)  
     
 except KeyError:
@@ -345,10 +360,12 @@ try:
     ROE_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         ROE_ratio[i] = func(ROE[ROE["Company Name"]==companies[i]],"Return On Avg Com Eq")
-        
+ 
     dfROE= ROE_ratio[0]
+    
     for i in range(1,len(ROE_ratio)):
         dfROE = pd.concat([dfROE,ROE_ratio[i]])
+    dfROE = dfROE.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfROE], axis = 1)   
     
 except KeyError:
@@ -360,10 +377,12 @@ try:
     Debt_Assets_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         Debt_Assets_ratio[i] = func(Debt_Assets[Debt_Assets["Company Name"]==companies[i]],"Tot Debt Pct of Tot Assets")
-        
+  
     dfDebt_Assets= Debt_Assets_ratio[0]
+    
     for i in range(1,len(Debt_Assets_ratio)):
         dfDebt_Assets = pd.concat([dfDebt_Assets,Debt_Assets_ratio[i]])
+    dfDebt_Assets = dfDebt_Assets.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfDebt_Assets], axis = 1)   
 except KeyError:
     pass
@@ -374,10 +393,12 @@ try:
     Debt_Eq_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         Debt_Eq_ratio[i] = func(Debt_Eq[Debt_Eq["Company Name"]==companies[i]],"Tot Debt Pct of Tot Eq")
-        
+
     dfDebt_Eq= Debt_Eq_ratio[0]
+      
     for i in range(1,len(Debt_Eq_ratio)):
         dfDebt_Eq = pd.concat([dfDebt_Eq,Debt_Eq_ratio[i]])
+    dfDebt_Eq = dfDebt_Eq.drop(["Company Name","Field Name"], axis = 1) 
     Ratios = pd.concat([Ratios, dfDebt_Eq], axis = 1)  
     
 except KeyError:
@@ -389,10 +410,12 @@ try:
     Debt_Cap_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         Debt_Cap_ratio[i] = func(Debt_Cap[Debt_Cap["Company Name"]==companies[i]],"Tot Debt Pct of Tot Cap")
-        
+
     dfDebt_Cap= Debt_Cap_ratio[0]
+    
     for i in range(1,len(Debt_Cap_ratio)):
         dfDebt_Cap = pd.concat([dfDebt_Cap,Debt_Cap_ratio[i]])
+    dfDebt_Cap = dfDebt_Cap.drop(["Company Name","Field Name"], axis = 1) 
     Ratios = pd.concat([Ratios, dfDebt_Cap], axis = 1) 
     
 except KeyError:
@@ -404,10 +427,12 @@ try:
     Gross_Profit_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         Gross_Profit_ratio[i] = func(Gross_Profit[Gross_Profit["Company Name"]==companies[i]],"Gross Profit Margin - %")
-        
+
     dfGross_Profit= Gross_Profit_ratio[0]
+   
     for i in range(1,len(Gross_Profit_ratio)):
         dfGross_Profit = pd.concat([dfGross_Profit,Gross_Profit_ratio[i]])
+    dfGross_Profit = dfGross_Profit.drop(["Company Name","Field Name"], axis = 1) 
     Ratios = pd.concat([Ratios, dfGross_Profit], axis = 1)  
     
 except KeyError:
@@ -419,10 +444,12 @@ try:
     EBITDA_Margin_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         EBITDA_Margin_ratio[i] = func(EBITDA_Margin[EBITDA_Margin["Company Name"]==companies[i]],"EBITDA Margin - %")
-        
+  
     dfEBITDA_Margin= EBITDA_Margin_ratio[0]
+ 
     for i in range(1,len(EBITDA_Margin_ratio)):
         dfEBITDA_Margin = pd.concat([dfEBITDA_Margin,EBITDA_Margin_ratio[i]])
+    dfEBITDA_Margin = dfEBITDA_Margin.drop(["Company Name","Field Name"], axis = 1) 
     Ratios = pd.concat([Ratios, dfEBITDA_Margin], axis = 1)  
     
 except KeyError:
@@ -436,8 +463,10 @@ try:
         Operating_Margin_ratio[i] = func(Operating_Margin[Operating_Margin["Company Name"]==companies[i]],"Operating Margin - %")
 
     dfOperating_Margin= Operating_Margin_ratio[0]
+
     for i in range(1,len(Operating_Margin_ratio)):
         dfOperating_Margin = pd.concat([dfOperating_Margin,Operating_Margin_ratio[i]])
+    dfOperating_Margin = dfOperating_Margin.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfOperating_Margin], axis = 1) 
         
 except KeyError:
@@ -449,10 +478,12 @@ try:
     Net_Margin_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         Net_Margin_ratio[i] = func(Net_Margin[Net_Margin["Company Name"]==companies[i]],"Net Margin - %")
-        
+   
     dfNet_Margin= Net_Margin_ratio[0]
+
     for i in range(1,len(Net_Margin_ratio)):
         dfNet_Margin = pd.concat([dfNet_Margin,Net_Margin_ratio[i]])
+    dfNet_Margin = dfNet_Margin.drop(["Company Name","Field Name"], axis = 1) 
     Ratios = pd.concat([Ratios, dfNet_Margin], axis = 1) 
     
 except KeyError:
@@ -464,10 +495,12 @@ try:
     Quick_R_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         Quick_R_ratio[i] = func(Quick_R[Quick_R["Company Name"]==companies[i]],"Quick Ratio")
-        
+     
     dfQuick_R= Quick_R_ratio[0]
+
     for i in range(1,len(Quick_R_ratio)):
         dfQuick_R = pd.concat([dfQuick_R,Quick_R_ratio[i]])
+    dfQuick_R = dfQuick_R.drop(["Company Name","Field Name"], axis = 1)  
     Ratios = pd.concat([Ratios, dfQuick_R], axis = 1) 
     
 except KeyError:
@@ -479,10 +512,12 @@ try:
     Curr_R_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         Curr_R_ratio[i] = func(Curr_R[Curr_R["Company Name"]==companies[i]],"Curr Ratio")
-        
+      
     dfCurr_R= Curr_R_ratio[0]
+
     for i in range(1,len(Curr_R_ratio)):
         dfCurr_R = pd.concat([dfCurr_R,Curr_R_ratio[i]])
+    dfCurr_R = dfCurr_R.drop(["Company Name","Field Name"], axis = 1)  
     Ratios = pd.concat([Ratios, dfCurr_R], axis = 1)
     
 except KeyError:
@@ -494,10 +529,12 @@ try:
     FOCF_Yld_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         FOCF_Yld_ratio[i] = func(FOCF_Yld[FOCF_Yld["Company Name"]==companies[i]],"FOCF Yld")
-        
+      
     dfFOCF_Yld= FOCF_Yld_ratio[0]
+
     for i in range(1,len(FOCF_Yld_ratio)):
         dfFOCF_Yld = pd.concat([dfFOCF_Yld,FOCF_Yld_ratio[i]])
+    dfFOCF_Yld = dfFOCF_Yld.drop(["Company Name","Field Name"], axis = 1)  
     Ratios = pd.concat([Ratios, dfFOCF_Yld], axis = 1)
     
 except KeyError:
@@ -509,10 +546,12 @@ try:
     WkgCap_Assets_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         WkgCap_Assets_ratio[i] = func(WkgCap_Assets[WkgCap_Assets["Company Name"]==companies[i]],"Wkg Cap to Tot Assets")
-        
+       
     dfWkgCap_Assets= WkgCap_Assets_ratio[0]
+
     for i in range(1,len(WkgCap_Assets_ratio)):
         dfWkgCap_Assets = pd.concat([dfWkgCap_Assets,WkgCap_Assets_ratio[i]])
+    dfWkgCap_Assets = dfWkgCap_Assets.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfWkgCap_Assets], axis = 1)
     
 except KeyError:
@@ -524,10 +563,12 @@ try:
     Invnt_Turnover_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         Invnt_Turnover_ratio[i] = func(Invnt_Turnover[Invnt_Turnover["Company Name"]==companies[i]],"Invnt Turnover")
-        
+ 
     dfInvnt_Turnover= Invnt_Turnover_ratio[0]
+ 
     for i in range(1,len(Invnt_Turnover_ratio)):
         dfInvnt_Turnover = pd.concat([dfInvnt_Turnover,Invnt_Turnover_ratio[i]])
+    dfInvnt_Turnover = dfInvnt_Turnover.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfInvnt_Turnover], axis = 1)
     
 except KeyError:
@@ -541,8 +582,10 @@ try:
         Avg_Invnt_ratio[i] = func(Avg_Invnt[Avg_Invnt["Company Name"]==companies[i]],"Avg Invnt Days")
 
     dfAvg_Invnt= Avg_Invnt_ratio[0]
+
     for i in range(1,len(Avg_Invnt_ratio)):
         dfAvg_Invnt = pd.concat([dfAvg_Invnt,Avg_Invnt_ratio[i]])
+    dfAvg_Invnt = dfAvg_Invnt.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfAvg_Invnt], axis = 1)
     
 except KeyError:
@@ -554,10 +597,12 @@ try:
     Assets_employee_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         Assets_employee_ratio[i] = func(Assets_employee[Assets_employee["Company Name"]==companies[i]],"Tot_Assets_per_Employee")
-        
+  
     dfAssets_employee= Assets_employee_ratio[0]
+
     for i in range(1,len(Assets_employee_ratio)):
         dfAssets_employee = pd.concat([dfAssets_employee,Assets_employee_ratio[i]])
+    dfAssets_employee = dfAssets_employee.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfAssets_employee], axis = 1)
     
 except KeyError:
@@ -569,18 +614,25 @@ try:
     IncBef_Margin_ratio = [None]*len(companies)
     for i in range(0,len(companies)):
         IncBef_Margin_ratio[i] = func(IncBef_Margin[IncBef_Margin["Company Name"]==companies[i]],"Inc Bef Taxes Margin - %")
-        
+    
     dfIncBef_Margin= IncBef_Margin_ratio[0]
+
     for i in range(1,len(IncBef_Margin_ratio)):
         dfIncBef_Margin = pd.concat([dfIncBef_Margin,IncBef_Margin_ratio[i]])
+    dfIncBef_Margin = dfIncBef_Margin.drop(["Company Name","Field Name"], axis = 1)
     Ratios = pd.concat([Ratios, dfIncBef_Margin], axis = 1)
     
 except KeyError:
     pass
+
     
 #Limpieza de datos de los Ratios
 Ratios = Ratios.dropna(axis = 0, how = 'all')
 Ratios = Ratios.dropna(axis = 1, how = 'all')
+lista = Ratios.columns.values.tolist()
+for i in lista:
+    Ratios[i].replace(np.inf,0,inplace=True)
+    Ratios[i].replace(-np.inf,0,inplace=True)
 #Guardamos los datos en archivo excel
 Ratios.to_excel('Ratios.xlsx', header=True, index=False)
 
