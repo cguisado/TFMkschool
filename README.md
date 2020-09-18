@@ -12,6 +12,7 @@ Metodología de Trabajo
 
 Este estudio está dividido en diversas fases, desde la extracción del dato, la limpieza y estructuración del mismo, el estudio de las variables y la creación de modelos predictivos y la visualización final.
 
+
 1. La extracción del dato
 Se ha realizado a través de una herramienta de RPA llamada UiPath.
 La función de esta herramienta ha sido la de hacer estas actividades de manera automática:
@@ -27,12 +28,14 @@ Gracias a esta herramienta, hemos podido descargar de la página web de Thomson 
 Se adjunta código UiPath. 
 
 
+
 2. Estructuración del dato
 Los datos previamente descargados en UiPath no se encuentran estructurados, por lo que hemos utilizando código VBA para recoger los datos financieros que nos interesaban y guardarlos en una pestaña nueva dentro de cada uno de los archivos de las empresas. A esta pestaña se le da el nombre de "Financial Data".
 
 Con este paso, conseguimos estructurar los datos financieros de cada una de las empresas. Esto se consigue realizando un bucle dentro de una ruta dada.
 
 Se adjunta código VBA.
+
 
 
 3. Limpieza del dato
@@ -49,6 +52,7 @@ En el segundo paso, los objetivos son los siguientes:
 - Dividir el dataset resultante con todos los ratios entre tantas industrias como queramos analizar. Cada industria se guardará en un dataset en una ruta dada.
 
 
+
 4. Análisis de correlación entre variables financieras
 El módulo en el que se hace este análisis es el que se llama "Paso 3-4- Análisis de datos y Modelo predictivo."El objetivo de este paso es conocer qué ratios son los que tienen mayor relación con el incremento del valor de mercado de una empresa.
 
@@ -61,6 +65,7 @@ Una vez ya tenemos los ratios correctos, los ordenamos y realizamos una matriz d
 Para analizar la industria más profundamente, crearemos un dataframe con la media de los ratios durante los últimos años, para así, con un único vistazo, conocer cómo se está comportando la industria.
 
 
+
 5. Modelos predictivos
 
 El objetivo de este paso es crear un modelo que sea eficaz a la hora de predecir la variación en el "Market Capitalization" dados unas variaciones dadas de sus ratios financieros.
@@ -70,6 +75,7 @@ Los modelos que se han realizado son los siguientes:
 - Regresión Polinomial.
 - Regresión Logística. Esta regresión devuelve si debería haber subido o bajado el valor en bolsa de acuerdo al movimiento de sus ratios financieros, pero no intenta predecrir el porcentaje exacto de subida o bajada.
 - Árbol de decisión
+
 
 
 6. Visualización
