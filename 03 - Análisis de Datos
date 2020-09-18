@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 
 #Leemos el archivo excel de la industria 'Healthcare'.
 ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
-df = pd.read_excel(ruta + "Specialty_Retailers.xlsx")
+df = pd.read_excel(ruta + "Healthcare.xlsx")
 #CDefinimos variable con una lista de las columnas
 col = list(df.columns)
 #Definimos los filtros que no queremos en el dataset
