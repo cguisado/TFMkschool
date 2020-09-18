@@ -1,0 +1,107 @@
+Sub Data_v3()
+
+Application.ScreenUpdating = False
+Application.EnableEvents = False
+ActiveSheet.DisplayPageBreaks = False
+Application.DisplayAlerts = False
+
+    Sheets("Data").Select
+    ActiveWindow.SelectedSheets.Delete
+    Sheets("FinancialData").Select
+    ActiveWindow.SelectedSheets.Delete
+    
+    
+'Creamos una nueva pestaña, a la que llamaremos "FinancialData"
+Sheets.Add After:=ActiveSheet
+Sheets("Hoja1").Select
+Sheets("Hoja1").Name = "FinancialData"
+
+
+'Declaramos dos variables de longitudes para poder recoorrer los datos de la pestaña
+Sheets("Financial Summary").Select
+UltimaFila = ActiveSheet.Cells(Rows.Count, "A").End(xlUp).Row
+UltimaColumna = ActiveSheet.Cells(9, Columns.Count).End(xlToLeft).Column
+
+'Copiamos los primeros datos de la Compañía en la pestaña "FinancialData"
+Range("A2:B4").Select
+Selection.Copy
+Sheets("FinancialData").Select
+Range("A1").Select
+Selection.PasteSpecial Paste:=xlPasteAll, Operation:=xlNone, SkipBlanks:= _
+    False, Transpose:=True
+Range("A1").Select
+
+'Buscamos y copiamos la unidad de medida del reporte financiero
+Sheets("Financial Summary").Select
+Columns("A:A").Select
+Selection.Find(What:="Reporting Unit", After:=ActiveCell, LookIn:=xlFormulas2, _
+    LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
+    MatchCase:=False, SearchFormat:=False).Activate
+ActiveCell.Select
+Selection.Resize(1, UltimaColumna).Select
+Selection.Copy
+Sheets("FinancialData").Select
+Range("D1").Select
+Selection.PasteSpecial Paste:=xlPasteAll, Operation:=xlNone, SkipBlanks:= _
+    False, Transpose:=True
+Range("A1").Select
+
+'Buscamos los datos financieros para copiarlos en nuestra pestaña
+Sheets("Financial Summary").Select
+Columns("A:A").Select
+Selection.Find(What:="Field Name", After:=ActiveCell, LookIn:=xlFormulas2, _
+    LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
+    MatchCase:=False, SearchFormat:=False).Activate
+ActiveCell.Select
+Selection.Resize(UltimaFila, UltimaColumna).Select
+Selection.Copy
+Sheets("FinancialData").Select
+Range("E1").Select
+Selection.PasteSpecial Paste:=xlPasteAll, Operation:=xlNone, SkipBlanks:= _
+    False, Transpose:=True
+Range("A1").Select
+
+
+'Arrastramos las tres primeras variables hasta la última fila
+UltimaFilaData = ActiveSheet.Cells(Rows.Count, "D").End(xlUp).Row
+Range("A2").Select
+    Selection.AutoFill Destination:=Range("A2:A" & UltimaFilaData)
+Range("B2").Select
+    Selection.AutoFill Destination:=Range("B2:B" & UltimaFilaData)
+Range("C2").Select
+    Selection.AutoFill Destination:=Range("C2:C" & UltimaFilaData)
+
+'Borramos formatos y aquellas columnas que se encuntren sin datos
+Cells.Select
+Selection.ClearFormats
+Range("1:1").SpecialCells(xlCellTypeBlanks).EntireColumn.Delete
+Range("A1").Select
+
+
+'Copiamos los datos de la pestaña "Valuation" en "FinancialData", después de los datos financieros
+UltimaFilaVal = Sheets("Valuation").Cells(Rows.Count, "A").End(xlUp).Row
+Sheets("Valuation").Select
+Columns("A:A").Select
+Selection.Find(What:="Enterprise Value", After:=ActiveCell, LookIn:=xlFormulas2, _
+    LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, _
+    MatchCase:=False, SearchFormat:=False).Activate
+ActiveCell.Select
+Selection.Resize(UltimaFilaVal, UltimaColumna).Select
+Selection.Copy
+Sheets("FinancialData").Select
+Range("A1").Select
+Selection.End(xlToRight).Select
+Selection.Offset(0, 1).Select
+Selection.PasteSpecial Paste:=xlPasteAll, Operation:=xlNone, SkipBlanks:= _
+    False, Transpose:=True
+Range("A1").Select
+
+
+'Borramos formatos y aquellas columnas que se encuntren sin datos
+Cells.Select
+Selection.ClearFormats
+Range("A1").Select
+Range("1:1").SpecialCells(xlCellTypeBlanks).EntireColumn.Delete
+Range("A1").Select
+
+End Sub
