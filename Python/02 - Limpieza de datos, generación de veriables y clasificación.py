@@ -1,0 +1,841 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# ### PASO 2: CLASIFICAR POR INDUSTRIAS - CREACIÓN DE DATASETS
+
+# Ya tenemos todos los datos financieros de las empresas guardados en un dataset llamado "df.xlsx". 
+# Ahora nos disponemos a filtrar por industrias para seguir estructurando los datos. 
+
+# In[104]:
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+from scipy.stats import norm
+from sklearn.preprocessing import StandardScaler
+from scipy import stats
+import warnings
+# Para evitar los avisos.
+warnings.filterwarnings('ignore') 
+get_ipython().run_line_magic('matplotlib', 'inline')
+
+
+# In[105]:
+
+
+df = pd.read_excel('df.xlsx')
+#Primero vamos a filtrar todos aquellas empresas las cuales la unidad de reporte son millones. 
+#Esto lo hacemos porque en el dataset vienen variables financieras las cuales no se estudian en todas las industrias.
+df_ = df.dropna(axis = 1, how = "all")
+df_.shape
+
+
+# In[106]:
+
+
+#Primero vamos a crear un DataFrame con el nombre de las distintas compañías de la industria
+df_ratios = pd.DataFrame(df_["Company Name"])
+
+
+# In[107]:
+
+
+#Añadimos una columna a nuestro DataFrame. Variable financiera utilizada en la valoración de empresas, en la que
+#se divide el valor de la empresa (market cap) por su EBITDA.
+try:
+    df_["EV/EBITDA"] = df_["Market Capitalization"] / df_["EBITDA"]
+except KeyError:
+    pass
+
+#Ahora iremos definiendo diferentes variables financieras. Debido a que analizaremos distintas industrias, y para evitar que
+#se produzca un error en python, iremos viendo si existen los ratios demandados y añadiéndolo a df_ratios en caso positivo.
+
+#Date
+try:
+    Date = pd.DataFrame(data = df_["Field Name"])
+    df_ratios = pd.concat([df_ratios, Date], axis = 1)
+except KeyError:
+    pass
+
+#Industry
+try:
+    Industry = pd.DataFrame(data = df_['TRBC Industry Group'])
+    df_ratios = pd.concat([df_ratios, Industry], axis = 1)
+except KeyError:
+    pass
+
+#Market Cap
+try:
+    Mkt_Cap = pd.DataFrame(data = df_["Market Capitalization"])
+    df_ratios = pd.concat([df_ratios, Mkt_Cap], axis = 1)
+except KeyError:
+    pass
+
+#Ratio Book Value per share:
+try:
+    BookValue_per_share = pd.DataFrame((df_["Price To Book Value per Share - Issue"]*100) / df_["Price Close (End Of Period)"])
+    BookValue_per_share.columns = ["BookValue_per_share"]
+    df_ratios = pd.concat([df_ratios, BookValue_per_share], axis = 1)
+except KeyError:
+    pass
+#Ratio EV_EBITDA:
+try:
+    EV_EBITDA = pd.DataFrame(data = df_["EV/EBITDA"])
+    df_ratios = pd.concat([df_ratios, EV_EBITDA], axis = 1)
+except KeyError:
+    pass
+#Ratio PE_Growth_Ratio:
+try:
+    PE_Growth_Ratio = pd.DataFrame(df_["PE Growth Ratio"])
+    df_ratios = pd.concat([df_ratios, PE_Growth_Ratio], axis = 1)
+except KeyError:
+    pass
+#Ratio Pretax ROA:
+try:
+    Pretax_ROA = pd.DataFrame(df_["Pretax ROA"])
+    df_ratios = pd.concat([df_ratios, Pretax_ROA], axis = 1)
+except KeyError:
+    pass
+#Ratio Pretax ROE:
+try:
+    Pretax_ROE = pd.DataFrame(df_["Pretax ROE"])
+    df_ratios = pd.concat([df_ratios, Pretax_ROE], axis = 1)
+except KeyError:
+    pass
+#Ratio ROA:
+try:
+    ROA = pd.DataFrame(df_["Return On Avg Tot Assets"])
+    df_ratios = pd.concat([df_ratios, ROA], axis = 1)
+except KeyError:
+    pass
+#Ratio Pretax ROE:
+try:
+    ROE = pd.DataFrame(df_["Return On Avg Com Eq"])
+    df_ratios = pd.concat([df_ratios, ROE], axis = 1)
+except KeyError:
+    pass
+#Ratio Pretax ROIC:
+try:
+    ROIC = pd.DataFrame(df_["Return On Invst Cap"])
+    df_ratios = pd.concat([df_ratios, ROIC], axis = 1)
+except KeyError:
+    pass
+#Ratio Debt on Assets:
+try:
+    Debt_on_Assets = pd.DataFrame(df_["Tot Debt Pct of Tot Assets"])
+    df_ratios = pd.concat([df_ratios, Debt_on_Assets], axis = 1)
+except KeyError:
+    pass
+#Ratio Debt on Equity:
+try:
+    Debt_on_Equity = pd.DataFrame(df_["Tot Debt Pct of Tot Eq"])
+    df_ratios = pd.concat([df_ratios, Debt_on_Equity], axis = 1)
+except KeyError:
+    pass
+#Ratio Debt on Capital:
+try:
+    Debt_on_Capital = pd.DataFrame(df_["Tot Debt Pct of Tot Cap"])
+    df_ratios = pd.concat([df_ratios, Debt_on_Capital], axis = 1)
+except KeyError:
+    pass
+#Ratio Gross Profit:
+try:
+    Gross_Profit = pd.DataFrame(df_["Gross Profit Margin - %"])
+    df_ratios = pd.concat([df_ratios, Gross_Profit], axis = 1)
+except KeyError:
+    pass
+#Ratio EBITDA Margin:
+try:
+    EBITDA_Margin = pd.DataFrame(df_["EBITDA Margin - %"])
+    df_ratios = pd.concat([df_ratios, EBITDA_Margin], axis = 1)
+except KeyError:
+    pass
+#Ratio Operating Margin:
+try:
+    Operating_Margin = pd.DataFrame(df_["Operating Margin - %"])
+    df_ratios = pd.concat([df_ratios, Operating_Margin], axis = 1)
+except KeyError:
+    pass
+#Ratio Net Margin:
+try:
+    Net_Margin = pd.DataFrame(df_["Net Margin - %"])
+    df_ratios = pd.concat([df_ratios, Net_Margin], axis = 1)
+except KeyError:
+    pass
+#Ratio Quick_r:
+try:
+    Quick_Ratio = pd.DataFrame(df_["Quick Ratio"])
+    df_ratios = pd.concat([df_ratios, Quick_Ratio], axis = 1)
+except KeyError:
+    pass
+#Ratio Current_r:
+try:
+    Current_Ratio = pd.DataFrame(df_["Curr Ratio"])
+    df_ratios = pd.concat([df_ratios, Current_Ratio], axis = 1)
+except KeyError:
+    pass
+#Ratio FOCF_Yield:
+try:
+    FOCF_Yield = pd.DataFrame(df_["FOCF Yld"])
+    df_ratios = pd.concat([df_ratios, FOCF_Yield], axis = 1)
+except KeyError:
+    pass
+#Ratio Working Capital to Total Assets:
+try:
+    Working_Cap_to_Tot_Assets = pd.DataFrame(df_["Wkg Cap to Tot Assets"])
+    df_ratios = pd.concat([df_ratios, Working_Cap_to_Tot_Assets], axis = 1)
+except KeyError:
+    pass
+#Ratio Inventory Turnover:
+try:
+    Inventory_Turnover = pd.DataFrame(df_["Invnt Turnover"])
+    df_ratios = pd.concat([df_ratios, Inventory_Turnover], axis = 1)
+except KeyError:
+    pass
+#Ratio Average Inventory Days:
+try:
+    Average_Inventory_Days = pd.DataFrame(df_["Avg Invnt Days"])
+    df_ratios = pd.concat([df_ratios, Average_Inventory_Days], axis = 1)
+except KeyError:
+    pass
+#Ratio Price to Cash Flow per Share:
+try:
+    Price_to_Cash_Flow_per_Share = pd.DataFrame((df_["Price To Cash Flow per Share"]*100) / df_["Price Close (End Of Period)"])
+    Price_to_Cash_Flow_per_Share.columns = ["Price_to_Cash_Flow_per_Share"]
+    df_ratios = pd.concat([df_ratios, Price_to_Cash_Flow_per_Share], axis = 1)
+except KeyError:
+    pass
+#Ratio Total Assets per Employee:
+try:
+    Tot_Assets_per_Employee = pd.DataFrame((df_["Tot Assets per Emp"] * 100) /df_["Tot Assets"])
+    Tot_Assets_per_Employee.columns = ["Tot_Assets_per_Employee"]
+    df_ratios = pd.concat([df_ratios, Tot_Assets_per_Employee], axis = 1)
+except KeyError:
+    pass
+#Ratio Investment:
+try:
+    Investment_Ratio = pd.DataFrame(df_["Invst Ratio - %"])
+    df_ratios = pd.concat([df_ratios, Investment_Ratio], axis = 1)
+except KeyError:
+    pass
+#Ratio Efficiency_r:
+try:
+    Efficiency_Ratio = pd.DataFrame(df_["Efficiency Ratio - %"])
+    df_ratios = pd.concat([df_ratios, Efficiency_Ratio], axis = 1)
+except KeyError:
+    pass
+#Ratio Income Bef Taxes Margin:
+try:
+    Inc_Bef_Taxes_Margin = pd.DataFrame(df_["Inc Bef Taxes Margin - %"])
+    df_ratios = pd.concat([df_ratios, Inc_Bef_Taxes_Margin], axis = 1)
+except KeyError:
+    pass
+
+
+# In[108]:
+
+
+#Comprobamos que el DataFrame df_ratios está correcto
+df_ratios.columns.values
+
+
+# In[109]:
+
+
+#Definimos una variable que será un array con el nombre de las compañías
+companies = df_ratios["Company Name"]
+companies = companies.unique()
+companies[0]
+
+
+# In[110]:
+
+
+#Creamos ahora una función la cual nos crea una lista donde vamos a calcular y añadir,
+#en la columna dada, la variación porcentual de los ratios financieros.
+def func(df,columnName):
+    fechas = df["Field Name"].tolist()[::-1]
+    listaValues = [None]*len(fechas)
+    for i in range(1,len(fechas)):
+        mayor = df[df['Field Name'] == fechas[i]][[columnName]].iloc[0].values[0]
+        menor = df[df['Field Name'] == fechas[i-1]][[columnName]].iloc[0].values[0]
+        value = (((mayor*100)/menor)/100)-1
+        listaValues[i] = value
+    df[columnName] = listaValues[::-1]
+    return df
+
+
+# In[111]:
+
+
+#Tarda 10minutos
+#Creamos un dataset en el cual iremos añadiendo las columnas que vamos calculando utilizando la función "func".
+Ratios = df_ratios[["Company Name","Field Name",'TRBC Industry Group']]
+
+#Calculamos, uno a uno, el porcentaje de cambio de cada una de las columnas. 
+
+#Market Capitalization
+try:
+    MktCap = df_ratios[["Company Name","Field Name","Market Capitalization"]]
+    MktCap_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        MktCap_ratio[i] = func(MktCap[MktCap["Company Name"]==companies[i]],"Market Capitalization")
+    dfMktCap= MktCap_ratio[0]
+    
+    for i in range(1,len(MktCap_ratio)):
+        dfMktCap = pd.concat([dfMktCap,MktCap_ratio[i]])
+    dfMktCap = dfMktCap.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfMktCap], axis = 1)  
+except KeyError:
+    pass    
+
+#BookValue per share:
+try:
+    Book_Value = df_ratios[["Company Name","Field Name","BookValue_per_share"]]
+    BookValue_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        BookValue_ratio[i] = func(Book_Value[Book_Value["Company Name"]==companies[i]],"BookValue_per_share")
+   
+    dfBookValue= BookValue_ratio[0]
+    
+    for i in range(1,len(BookValue_ratio)):
+        dfBookValue = pd.concat([dfBookValue,BookValue_ratio[i]])
+    dfBookValue = dfBookValue.drop(["Company Name","Field Name"], axis = 1) 
+    Ratios = pd.concat([Ratios, dfBookValue], axis = 1)
+except KeyError:
+    pass 
+
+#EV/EBITDA
+try:
+    EV_EBITDA = df_ratios[["Company Name","Field Name","EV/EBITDA"]]
+    EV_EBITDA_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        EV_EBITDA_ratio[i] = func(EV_EBITDA[EV_EBITDA["Company Name"]==companies[i]],"EV/EBITDA")
+ 
+    dfEV_EBITDA= EV_EBITDA_ratio[0]
+    
+    for i in range(1,len(EV_EBITDA_ratio)):
+        dfEV_EBITDA = pd.concat([dfEV_EBITDA,EV_EBITDA_ratio[i]])
+    dfEV_EBITDA = dfEV_EBITDA.drop(["Company Name","Field Name"], axis = 1)   
+    Ratios = pd.concat([Ratios, dfEV_EBITDA], axis = 1)
+except KeyError:
+    pass 
+
+#PE Growth Ratio
+try:
+    PE_Growth = df_ratios[["Company Name","Field Name","PE Growth Ratio"]]
+    PE_Growth_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        PE_Growth_ratio[i] = func(PE_Growth[PE_Growth["Company Name"]==companies[i]],"PE Growth Ratio")
+    
+    dfPE_Growth= PE_Growth_ratio[0]
+        
+
+    for i in range(1,len(PE_Growth_ratio)):
+        dfPE_Growth = pd.concat([dfPE_Growth,PE_Growth_ratio[i]])
+    dfMktCap = dfMktCap.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfPE_Growth], axis = 1)
+    
+except KeyError:
+    pass  
+
+#Pretax ROA
+try:
+    Pretax_ROA = df_ratios[["Company Name","Field Name","Pretax ROA"]]
+    Pretax_ROA_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Pretax_ROA_ratio[i] = func(Pretax_ROA[Pretax_ROA["Company Name"]==companies[i]],"Pretax ROA")
+     
+    dfPretax_ROA= Pretax_ROA_ratio[0]
+       
+    for i in range(1,len(Pretax_ROA_ratio)):
+        dfPretax_ROE = pd.concat([dfPretax_ROA,Pretax_ROA_ratio[i]])
+    dfPretax_ROA = dfPretax_ROA.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfPretax_ROA], axis = 1)  
+except KeyError:
+    pass    
+
+
+#Pretax ROE
+try:
+    Pretax_ROE = df_ratios[["Company Name","Field Name","Pretax ROE"]]
+    Pretax_ROE_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Pretax_ROE_ratio[i] = func(Pretax_ROE[Pretax_ROE["Company Name"]==companies[i]],"Pretax ROE")
+
+    dfPretax_ROE= Pretax_ROE_ratio[0]
+    
+    for i in range(1,len(Pretax_ROE_ratio)):
+        dfPretax_ROE = pd.concat([dfPretax_ROE,Pretax_ROE_ratio[i]])
+    dfPretax_ROE = dfPretax_ROE.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfPretax_ROE], axis = 1)
+    
+except KeyError:
+    pass
+
+#Return On Avg Tot Assets
+try:
+    ROA = df_ratios[["Company Name","Field Name","Return On Avg Tot Assets"]]
+    ROA_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        ROA_ratio[i] = func(ROA[ROA["Company Name"]==companies[i]],"Return On Avg Tot Assets")
+
+    dfROA= ROA_ratio[0]
+     
+    for i in range(1,len(ROA_ratio)):
+        dfROA = pd.concat([dfROA,ROA_ratio[i]])
+    dfROA = dfROA.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfROA], axis = 1)  
+    
+except KeyError:
+    pass
+
+#Return On Avg Com Eq
+try:
+    ROE = df_ratios[["Company Name","Field Name","Return On Avg Com Eq"]]
+    ROE_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        ROE_ratio[i] = func(ROE[ROE["Company Name"]==companies[i]],"Return On Avg Com Eq")
+ 
+    dfROE= ROE_ratio[0]
+    
+    for i in range(1,len(ROE_ratio)):
+        dfROE = pd.concat([dfROE,ROE_ratio[i]])
+    dfROE = dfROE.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfROE], axis = 1)   
+    
+except KeyError:
+    pass
+
+#Tot Debt Pct of Tot Assets
+try:
+    Debt_Assets = df_ratios[["Company Name","Field Name","Tot Debt Pct of Tot Assets"]]
+    Debt_Assets_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Debt_Assets_ratio[i] = func(Debt_Assets[Debt_Assets["Company Name"]==companies[i]],"Tot Debt Pct of Tot Assets")
+  
+    dfDebt_Assets= Debt_Assets_ratio[0]
+    
+    for i in range(1,len(Debt_Assets_ratio)):
+        dfDebt_Assets = pd.concat([dfDebt_Assets,Debt_Assets_ratio[i]])
+    dfDebt_Assets = dfDebt_Assets.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfDebt_Assets], axis = 1)   
+except KeyError:
+    pass
+
+#Tot Debt Pct of Tot Eq
+try:
+    Debt_Eq = df_ratios[["Company Name","Field Name","Tot Debt Pct of Tot Eq"]]
+    Debt_Eq_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Debt_Eq_ratio[i] = func(Debt_Eq[Debt_Eq["Company Name"]==companies[i]],"Tot Debt Pct of Tot Eq")
+
+    dfDebt_Eq= Debt_Eq_ratio[0]
+      
+    for i in range(1,len(Debt_Eq_ratio)):
+        dfDebt_Eq = pd.concat([dfDebt_Eq,Debt_Eq_ratio[i]])
+    dfDebt_Eq = dfDebt_Eq.drop(["Company Name","Field Name"], axis = 1) 
+    Ratios = pd.concat([Ratios, dfDebt_Eq], axis = 1)  
+    
+except KeyError:
+    pass
+
+#Tot Debt Pct of Tot Cap
+try:
+    Debt_Cap = df_ratios[["Company Name","Field Name","Tot Debt Pct of Tot Cap"]]
+    Debt_Cap_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Debt_Cap_ratio[i] = func(Debt_Cap[Debt_Cap["Company Name"]==companies[i]],"Tot Debt Pct of Tot Cap")
+
+    dfDebt_Cap= Debt_Cap_ratio[0]
+    
+    for i in range(1,len(Debt_Cap_ratio)):
+        dfDebt_Cap = pd.concat([dfDebt_Cap,Debt_Cap_ratio[i]])
+    dfDebt_Cap = dfDebt_Cap.drop(["Company Name","Field Name"], axis = 1) 
+    Ratios = pd.concat([Ratios, dfDebt_Cap], axis = 1) 
+    
+except KeyError:
+    pass
+
+#Gross Profit Margin - %
+try:
+    Gross_Profit = df_ratios[["Company Name","Field Name","Gross Profit Margin - %"]]
+    Gross_Profit_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Gross_Profit_ratio[i] = func(Gross_Profit[Gross_Profit["Company Name"]==companies[i]],"Gross Profit Margin - %")
+
+    dfGross_Profit= Gross_Profit_ratio[0]
+   
+    for i in range(1,len(Gross_Profit_ratio)):
+        dfGross_Profit = pd.concat([dfGross_Profit,Gross_Profit_ratio[i]])
+    dfGross_Profit = dfGross_Profit.drop(["Company Name","Field Name"], axis = 1) 
+    Ratios = pd.concat([Ratios, dfGross_Profit], axis = 1)  
+    
+except KeyError:
+    pass
+
+#EBITDA Margin - %
+try:
+    EBITDA_Margin = df_ratios[["Company Name","Field Name","EBITDA Margin - %"]]
+    EBITDA_Margin_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        EBITDA_Margin_ratio[i] = func(EBITDA_Margin[EBITDA_Margin["Company Name"]==companies[i]],"EBITDA Margin - %")
+  
+    dfEBITDA_Margin= EBITDA_Margin_ratio[0]
+ 
+    for i in range(1,len(EBITDA_Margin_ratio)):
+        dfEBITDA_Margin = pd.concat([dfEBITDA_Margin,EBITDA_Margin_ratio[i]])
+    dfEBITDA_Margin = dfEBITDA_Margin.drop(["Company Name","Field Name"], axis = 1) 
+    Ratios = pd.concat([Ratios, dfEBITDA_Margin], axis = 1)  
+    
+except KeyError:
+    pass
+
+#Operating Margin - %
+try:
+    Operating_Margin = df_ratios[["Company Name","Field Name","Operating Margin - %"]]
+    Operating_Margin_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Operating_Margin_ratio[i] = func(Operating_Margin[Operating_Margin["Company Name"]==companies[i]],"Operating Margin - %")
+
+    dfOperating_Margin= Operating_Margin_ratio[0]
+
+    for i in range(1,len(Operating_Margin_ratio)):
+        dfOperating_Margin = pd.concat([dfOperating_Margin,Operating_Margin_ratio[i]])
+    dfOperating_Margin = dfOperating_Margin.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfOperating_Margin], axis = 1) 
+        
+except KeyError:
+    pass
+
+#Net Margin - %
+try:
+    Net_Margin = df_ratios[["Company Name","Field Name","Net Margin - %"]]
+    Net_Margin_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Net_Margin_ratio[i] = func(Net_Margin[Net_Margin["Company Name"]==companies[i]],"Net Margin - %")
+   
+    dfNet_Margin= Net_Margin_ratio[0]
+
+    for i in range(1,len(Net_Margin_ratio)):
+        dfNet_Margin = pd.concat([dfNet_Margin,Net_Margin_ratio[i]])
+    dfNet_Margin = dfNet_Margin.drop(["Company Name","Field Name"], axis = 1) 
+    Ratios = pd.concat([Ratios, dfNet_Margin], axis = 1) 
+    
+except KeyError:
+    pass
+
+#Quick Ratio
+try:
+    Quick_R = df_ratios[["Company Name","Field Name","Quick Ratio"]]
+    Quick_R_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Quick_R_ratio[i] = func(Quick_R[Quick_R["Company Name"]==companies[i]],"Quick Ratio")
+     
+    dfQuick_R= Quick_R_ratio[0]
+
+    for i in range(1,len(Quick_R_ratio)):
+        dfQuick_R = pd.concat([dfQuick_R,Quick_R_ratio[i]])
+    dfQuick_R = dfQuick_R.drop(["Company Name","Field Name"], axis = 1)  
+    Ratios = pd.concat([Ratios, dfQuick_R], axis = 1) 
+    
+except KeyError:
+    pass
+
+#Curr Ratio
+try:
+    Curr_R = df_ratios[["Company Name","Field Name","Curr Ratio"]]
+    Curr_R_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Curr_R_ratio[i] = func(Curr_R[Curr_R["Company Name"]==companies[i]],"Curr Ratio")
+      
+    dfCurr_R= Curr_R_ratio[0]
+
+    for i in range(1,len(Curr_R_ratio)):
+        dfCurr_R = pd.concat([dfCurr_R,Curr_R_ratio[i]])
+    dfCurr_R = dfCurr_R.drop(["Company Name","Field Name"], axis = 1)  
+    Ratios = pd.concat([Ratios, dfCurr_R], axis = 1)
+    
+except KeyError:
+    pass
+
+#FOCF Yld
+try:
+    FOCF_Yld = df_ratios[["Company Name","Field Name","FOCF Yld"]]
+    FOCF_Yld_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        FOCF_Yld_ratio[i] = func(FOCF_Yld[FOCF_Yld["Company Name"]==companies[i]],"FOCF Yld")
+      
+    dfFOCF_Yld= FOCF_Yld_ratio[0]
+
+    for i in range(1,len(FOCF_Yld_ratio)):
+        dfFOCF_Yld = pd.concat([dfFOCF_Yld,FOCF_Yld_ratio[i]])
+    dfFOCF_Yld = dfFOCF_Yld.drop(["Company Name","Field Name"], axis = 1)  
+    Ratios = pd.concat([Ratios, dfFOCF_Yld], axis = 1)
+    
+except KeyError:
+    pass
+
+#Wkg Cap to Tot Assets
+try:
+    WkgCap_Assets = df_ratios[["Company Name","Field Name","Wkg Cap to Tot Assets"]]
+    WkgCap_Assets_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        WkgCap_Assets_ratio[i] = func(WkgCap_Assets[WkgCap_Assets["Company Name"]==companies[i]],"Wkg Cap to Tot Assets")
+       
+    dfWkgCap_Assets= WkgCap_Assets_ratio[0]
+
+    for i in range(1,len(WkgCap_Assets_ratio)):
+        dfWkgCap_Assets = pd.concat([dfWkgCap_Assets,WkgCap_Assets_ratio[i]])
+    dfWkgCap_Assets = dfWkgCap_Assets.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfWkgCap_Assets], axis = 1)
+    
+except KeyError:
+    pass
+
+#Invnt Turnover
+try:
+    Invnt_Turnover = df_ratios[["Company Name","Field Name","Invnt Turnover"]]
+    Invnt_Turnover_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Invnt_Turnover_ratio[i] = func(Invnt_Turnover[Invnt_Turnover["Company Name"]==companies[i]],"Invnt Turnover")
+ 
+    dfInvnt_Turnover= Invnt_Turnover_ratio[0]
+ 
+    for i in range(1,len(Invnt_Turnover_ratio)):
+        dfInvnt_Turnover = pd.concat([dfInvnt_Turnover,Invnt_Turnover_ratio[i]])
+    dfInvnt_Turnover = dfInvnt_Turnover.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfInvnt_Turnover], axis = 1)
+    
+except KeyError:
+    pass
+
+#Avg Invnt Days
+try:
+    Avg_Invnt = df_ratios[["Company Name","Field Name","Avg Invnt Days"]]
+    Avg_Invnt_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Avg_Invnt_ratio[i] = func(Avg_Invnt[Avg_Invnt["Company Name"]==companies[i]],"Avg Invnt Days")
+
+    dfAvg_Invnt= Avg_Invnt_ratio[0]
+
+    for i in range(1,len(Avg_Invnt_ratio)):
+        dfAvg_Invnt = pd.concat([dfAvg_Invnt,Avg_Invnt_ratio[i]])
+    dfAvg_Invnt = dfAvg_Invnt.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfAvg_Invnt], axis = 1)
+    
+except KeyError:
+    pass
+
+#Tot_Assets_per_Employee
+try:
+    Assets_employee = df_ratios[["Company Name","Field Name","Tot_Assets_per_Employee"]]
+    Assets_employee_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        Assets_employee_ratio[i] = func(Assets_employee[Assets_employee["Company Name"]==companies[i]],"Tot_Assets_per_Employee")
+  
+    dfAssets_employee= Assets_employee_ratio[0]
+
+    for i in range(1,len(Assets_employee_ratio)):
+        dfAssets_employee = pd.concat([dfAssets_employee,Assets_employee_ratio[i]])
+    dfAssets_employee = dfAssets_employee.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfAssets_employee], axis = 1)
+    
+except KeyError:
+    pass
+
+#Inc Bef Taxes Margin - %
+try:
+    IncBef_Margin = df_ratios[["Company Name","Field Name","Inc Bef Taxes Margin - %"]]
+    IncBef_Margin_ratio = [None]*len(companies)
+    for i in range(0,len(companies)):
+        IncBef_Margin_ratio[i] = func(IncBef_Margin[IncBef_Margin["Company Name"]==companies[i]],"Inc Bef Taxes Margin - %")
+    
+    dfIncBef_Margin= IncBef_Margin_ratio[0]
+
+    for i in range(1,len(IncBef_Margin_ratio)):
+        dfIncBef_Margin = pd.concat([dfIncBef_Margin,IncBef_Margin_ratio[i]])
+    dfIncBef_Margin = dfIncBef_Margin.drop(["Company Name","Field Name"], axis = 1)
+    Ratios = pd.concat([Ratios, dfIncBef_Margin], axis = 1)
+    
+except KeyError:
+    pass
+
+
+# In[112]:
+
+
+Ratios
+
+
+# In[113]:
+
+
+#Limpieza de datos de los Ratios
+Ratios = Ratios.dropna(axis = 0, how = 'all')
+Ratios = Ratios.dropna(axis = 1, how = 'all')
+lista = Ratios.columns.values.tolist()
+for i in lista:
+    Ratios[i].replace(np.inf,0,inplace=True)
+    Ratios[i].replace(-np.inf,0,inplace=True)
+#Guardamos los datos en archivo excel
+Ratios.to_excel('Ratios.xlsx', header=True, index=False)
+
+
+# In[114]:
+
+
+industrias = Ratios["TRBC Industry Group"]
+industrias = industrias.unique()
+lista_industrias = industrias.tolist()
+
+
+# In[115]:
+
+
+len(lista_industrias)
+
+
+# In[116]:
+
+
+lista_industrias
+
+
+# Ya tenemos una lista con las distintas industrias que se van a ir analizando.
+# El siguiente paso consistirá en crear un dataset por cada una de las industrias que vamos a analizar. Lo guardaremos en una carpeta llamada "Industrias".
+
+# In[117]:
+
+
+#Definimos variable "ruta" para guardar los datos en una carpeta específica.
+ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
+df = Ratios
+
+
+# In[119]:
+
+
+Healthcare = df[df['TRBC Industry Group'] == 'Healthcare Equipment & Supplies']
+Healthcare.to_excel(ruta + 'Healthcare.xlsx', header=True, index=False)
+Metals_Mining = df[df['TRBC Industry Group'] == 'Metals & Mining']
+Metals_Mining.to_excel(ruta + 'Metals_Mining.xlsx', header=True, index=False)
+Passenger_Transportation_Services = df[df['TRBC Industry Group'] == 'Passenger Transportation Services']
+Passenger_Transportation_Services.to_excel(ruta + 'Passenger_Transportation_Services.xlsx', header=True, index=False)
+Specialty_Retailers = df[df['TRBC Industry Group'] == 'Specialty Retailers']
+Specialty_Retailers.to_excel(ruta + 'Specialty_Retailers.xlsx', header=True, index=False)
+Computers_Phones_Household_Electronics = df[df['TRBC Industry Group'] == 'Computers, Phones & Household Electronics']
+Computers_Phones_Household_Electronics.to_excel(ruta + 'Computers_Phones_Household_Electronics.xlsx', header=True, index=False)
+Freight_Logistics_Services = df[df['TRBC Industry Group'] == 'Freight & Logistics Services']
+Freight_Logistics_Services.to_excel(ruta + 'Freight_Logistics_Services.xlsx', header=True, index=False)
+Pharmaceuticals = df[df['TRBC Industry Group'] == 'Pharmaceuticals']
+Pharmaceuticals.to_excel(ruta + 'Pharmaceuticals.xlsx', header=True, index=False)
+Professional_Commercial_Services = df[df['TRBC Industry Group'] == 'Professional & Commercial Services']
+Professional_Commercial_Services.to_excel(ruta + 'Professional_Commercial_Services.xlsx', header=True, index=False)
+Food_Tobacco= df[df['TRBC Industry Group'] == 'Food & Tobacco']
+Food_Tobacco.to_excel(ruta + 'Food_Tobacco.xlsx', header=True, index=False)
+Software_IT_Services = df[df['TRBC Industry Group'] == 'Software & IT Services']
+Software_IT_Services.to_excel(ruta + 'Software_IT_Services.xlsx', header=True, index=False)
+Multiline_Utilities = df[df['TRBC Industry Group'] == 'Multiline Utilities']
+Multiline_Utilities.to_excel(ruta + 'Multiline_Utilities.xlsx', header=True, index=False)
+Electric_Utilities_IPPs = df[df['TRBC Industry Group'] == 'Electric Utilities & IPPs']
+Electric_Utilities_IPPs.to_excel(ruta + 'Electric_Utilities_IPPs.xlsx', header=True, index=False)
+Insurance = df[df['TRBC Industry Group'] == 'Insurance']
+Insurance.to_excel(ruta + 'Insurance.xlsx', header=True, index=False)
+Machinery = df[df['TRBC Industry Group'] == 'Machinery, Tools, Heavy Vehicles, Trains & Ships']
+Machinery.to_excel(ruta + 'Machinery.xlsx', header=True, index=False)
+Chemicals = df[df['TRBC Industry Group'] == 'Chemicals']
+Chemicals.to_excel(ruta + 'Chemicals.xlsx', header=True, index=False)
+Residential_Commercial_REITs = df[df['TRBC Industry Group'] == 'Residential & Commercial REITs']
+Residential_Commercial_REITs.to_excel(ruta + 'Residential_Commercial_REITs.xlsx', header=True, index=False)
+Aerospace_Defense = df[df['TRBC Industry Group'] == 'Aerospace & Defense']
+Aerospace_Defense.to_excel(ruta + 'Aerospace_Defense.xlsx', header=True, index=False)
+Investment_Banking_Investment_Services = df[df['TRBC Industry Group'] == 'Investment Banking & Investment Services']
+Investment_Banking_Investment_Services.to_excel(ruta + 'Investment_Banking_Investment_Services.xlsx', header=True, index=False)
+Communications = df[df['TRBC Industry Group'] == 'Communications & Networking']
+Communications.to_excel(ruta + 'Communications.xlsx', header=True, index=False)
+Semiconductors = df[df['TRBC Industry Group'] == 'Semiconductors & Semiconductor Equipment']
+Semiconductors.to_excel(ruta + 'Semiconductors.xlsx', header=True, index=False)
+Diversified_Retail = df[df['TRBC Industry Group'] == 'Diversified Retail']
+Diversified_Retail.to_excel(ruta + 'Diversified_Retail.xlsx', header=True, index=False)
+Specialty_Retailers = df[df['TRBC Industry Group'] == 'Specialty Retailers']
+Specialty_Retailers.to_excel(ruta + 'Specialty_Retailers.xlsx', header=True, index=False)
+Healthcare_Providers_Services = df[df['TRBC Industry Group'] == 'Healthcare Providers & Services']
+Healthcare_Providers_Services.to_excel(ruta + 'Healthcare_Providers_Services.xlsx', header=True, index=False)
+Oil_Gas = df[df['TRBC Industry Group'] == 'Oil & Gas']
+Oil_Gas.to_excel(ruta + 'Oil_Gas.xlsx', header=True, index=False)
+Electronic_Equipment_Parts = df[df['TRBC Industry Group'] == 'Electronic Equipment & Parts']
+Electronic_Equipment_Parts.to_excel(ruta + 'Electronic_Equipment_Parts.xlsx', header=True, index=False)
+Containers_Packaging = df[df['TRBC Industry Group'] == 'Containers & Packaging']
+Containers_Packaging.to_excel(ruta + 'Containers_Packaging.xlsx', header=True, index=False)
+Water_Related_Utilities = df[df['TRBC Industry Group'] == 'Water & Related Utilities']
+Water_Related_Utilities.to_excel(ruta + 'Water_Related_Utilities.xlsx', header=True, index=False)
+Banking_Services = df[df['TRBC Industry Group'] == 'Banking Services']
+Banking_Services.to_excel(ruta + 'Banking_Services.xlsx', header=True, index=False)
+Homebuilding_Construction_Supplies = df[df['TRBC Industry Group'] == 'Homebuilding & Construction Supplies']
+Homebuilding_Construction_Supplies.to_excel(ruta + 'Homebuilding_Construction_Supplies.xlsx', header=True, index=False)
+Leisure_Products = df[df['TRBC Industry Group'] == 'Leisure Products']
+Leisure_Products.to_excel(ruta + 'Leisure_Products.xlsx', header=True, index=False)
+Textiles_Apparel = df[df['TRBC Industry Group'] == 'Textiles & Apparel']
+Textiles_Apparel.to_excel(ruta + 'Textiles_Apparel.xlsx', header=True, index=False)
+Beverages = df[df['TRBC Industry Group'] == 'Beverages']
+Beverages.to_excel(ruta + 'Beverages.xlsx', header=True, index=False)
+Coal = df[df['TRBC Industry Group'] == 'Coal']
+Coal.to_excel(ruta + 'Coal.xlsx', header=True, index=False)
+Automobiles_Auto_Parts = df[df['TRBC Industry Group'] == 'Automobiles & Auto Parts']
+Automobiles_Auto_Parts.to_excel(ruta + 'Automobiles_Auto_Parts.xlsx', header=True, index=False)
+Food_Drug_Retailing = df[df['TRBC Industry Group'] == 'Food & Drug Retailing']
+Food_Drug_Retailing.to_excel(ruta + 'Food_Drug_Retailing.xlsx', header=True, index=False)
+Media_Publishing = df[df['TRBC Industry Group'] == 'Media & Publishing']
+Media_Publishing.to_excel(ruta + 'Media_Publishing.xlsx', header=True, index=False)
+Hotels_Entertainment_Services = df[df['TRBC Industry Group'] == 'Hotels & Entertainment Services']
+Hotels_Entertainment_Services.to_excel(ruta + 'Hotels_Entertainment_Services.xlsx', header=True, index=False)
+Personal_Household_PS = df[df['TRBC Industry Group'] == 'Personal & Household Products & Services']
+Personal_Household_PS.to_excel(ruta + 'Personal_Household_PS.xlsx', header=True, index=False)
+Freight_Logistics_Services = df[df['TRBC Industry Group'] == 'Freight & Logistics Services']
+Freight_Logistics_Services.to_excel(ruta + 'Freight_Logistics_Services.xlsx', header=True, index=False)
+Telecommunications_Services = df[df['TRBC Industry Group'] == 'Telecommunications Services']
+Telecommunications_Services.to_excel(ruta + 'Telecommunications_Services.xlsx', header=True, index=False)
+Oil_Gas_Equipment_Services = df[df['TRBC Industry Group'] == 'Oil & Gas Related Equipment and Services']
+Oil_Gas_Equipment_Services.to_excel(ruta + 'Oil_Gas_Equipment_Services.xlsx', header=True, index=False)
+Industrial_Conglomerates = df[df['TRBC Industry Group'] == 'Industrial Conglomerates']
+Industrial_Conglomerates.to_excel(ruta + 'Industrial_Conglomerates.xlsx', header=True, index=False)
+Biotechnology_Medical_Research = df[df['TRBC Industry Group'] == 'Biotechnology & Medical Research']
+Biotechnology_Medical_Research.to_excel(ruta + 'Biotechnology_Medical_Research.xlsx', header=True, index=False)
+Diversified_Industrial_Goods = df[df['TRBC Industry Group'] == 'Diversified Industrial Goods Wholesalers']
+Diversified_Industrial_Goods.to_excel(ruta + 'Diversified_Industrial_Goods.xlsx', header=True, index=False)
+Real_Estate_Operations = df[df['TRBC Industry Group'] == 'Real Estate Operations']
+Real_Estate_Operations.to_excel(ruta + 'Real_Estate_Operations.xlsx', header=True, index=False)
+Construction_Engineering = df[df['TRBC Industry Group'] == 'Construction & Engineering']
+Construction_Engineering.to_excel(ruta + 'Construction_Engineering.xlsx', header=True, index=False)
+Construction_Materials = df[df['TRBC Industry Group'] == 'Construction Materials']
+Construction_Materials.to_excel(ruta + 'Construction_Materials.xlsx', header=True, index=False)
+Household_Goods = df[df['TRBC Industry Group'] == 'Household Goods']
+Household_Goods.to_excel(ruta + 'Household_Goods.xlsx', header=True, index=False)
+Natural_Gas_Utilities = df[df['TRBC Industry Group'] == 'Natural Gas Utilities']
+Natural_Gas_Utilities.to_excel(ruta + 'Natural_Gas_Utilities.xlsx', header=True, index=False)
+Office_Equipment = df[df['TRBC Industry Group'] == 'Office Equipment']
+Office_Equipment.to_excel(ruta + 'Office_Equipment.xlsx', header=True, index=False)
+Collective_Investments = df[df['TRBC Industry Group'] == 'Collective Investments']
+Collective_Investments.to_excel(ruta + 'Collective_Investments.xlsx', header=True, index=False)
+Renewable_Energy = df[df['TRBC Industry Group'] == 'Renewable Energy']
+Renewable_Energy.to_excel(ruta + 'Renewable_Energy.xlsx', header=True, index=False)
+Transport_Infraestructure = df[df['TRBC Industry Group'] == 'Transport Infrastructure']
+Transport_Infraestructure.to_excel(ruta + 'Transport_Infraestructure.xlsx', header=True, index=False)
+
+
+# El siguiente paso consistirá en abrir una de las industrias, examinarla y realizar la limpieza de datos necesaria. 
+
+# In[ ]:
+
+
+
+
+
+# In[41]:
+
+
+
+
