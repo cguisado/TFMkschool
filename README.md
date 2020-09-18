@@ -1,6 +1,6 @@
 # TFMkschool
 
-Objetivo del estudio
+# Objetivo del estudio
 
 El estudio tiene por finalidad hacer un análisis de las variables que mantienen una mayor correlación con la varianza de la Capitalización Bursátil de una empresa de un año para otro.
 
@@ -8,12 +8,12 @@ Entendemos que, dependiendo de la industria, estas variables serán diferentes, 
 Se utilizará la siguiente fuente de Datos para obtener los datos financieros históricos de más de 1.000 empresas que cotizan en el mercado bursátil.
 - Cuenta premium Thomson Reuters.
 
-Metodología de Trabajo
+# Metodología de Trabajo
 
 Este estudio está dividido en diversas fases, desde la extracción del dato, la limpieza y estructuración del mismo, el estudio de las variables y la creación de modelos predictivos y la visualización final.
 
 
-1. La extracción del dato
+[1. La extracción del dato]
 Se ha realizado a través de una herramienta de RPA llamada UiPath.
 La función de esta herramienta ha sido la de hacer estas actividades de manera automática:
 - Entrar en mi cuenta de Thomson Reuters utilizando mi usuario y mi contraseña.
@@ -29,7 +29,7 @@ Se adjunta código UiPath.
 
 
 
-2. Estructuración del dato
+[2. Estructuración del dato]
 Los datos previamente descargados en UiPath no se encuentran estructurados, por lo que hemos utilizando código VBA para recoger los datos financieros que nos interesaban y guardarlos en una pestaña nueva dentro de cada uno de los archivos de las empresas. A esta pestaña se le da el nombre de "Financial Data".
 
 Con este paso, conseguimos estructurar los datos financieros de cada una de las empresas. Esto se consigue realizando un bucle dentro de una ruta dada.
@@ -38,7 +38,7 @@ Se adjunta código VBA.
 
 
 
-3. Limpieza del dato
+[3. Limpieza del dato]
 Este paso se realiza a través de python, y forman parte del mismo los siguientes módulos:
 - Paso 1 - concatenar.
 - Paso 2 - Limpieza de datos, generación de variables y clasificación por industrias.
@@ -53,7 +53,7 @@ En el segundo paso, los objetivos son los siguientes:
 
 
 
-4. Análisis de correlación entre variables financieras
+[4. Análisis de correlación entre variables financieras]
 El módulo en el que se hace este análisis es el que se llama "Paso 3-4- Análisis de datos y Modelo predictivo."El objetivo de este paso es conocer qué ratios son los que tienen mayor relación con el incremento del valor de mercado de una empresa.
 
 Al hacer un primer análisis de la industria, nos damos cuenta que existe un problema de colinealidad. Es decir, existen variables las cuales son dependientes enre sí y aportan la misma información al estudio.
@@ -66,7 +66,7 @@ Para analizar la industria más profundamente, crearemos un dataframe con la med
 
 
 
-5. Modelos predictivos
+[5. Modelos predictivos]
 
 El objetivo de este paso es crear un modelo que sea eficaz a la hora de predecir la variación en el "Market Capitalization" dados unas variaciones dadas de sus ratios financieros.
 El modelo predictivo se hará con cada dataset de la industria, y se aplicará el algoritmo a la empresa que se pretenda analizar.
@@ -78,7 +78,7 @@ Los modelos que se han realizado son los siguientes:
 
 
 
-6. Visualización
+[6. Visualización]
 
 La visualización consiste en aplicar todo lo realizado anteriormente a través de dos fórmulas:
 - Formula 1: analysis_industria(industria)
@@ -97,8 +97,13 @@ La visualización consiste en aplicar todo lo realizado anteriormente a través 
      
     
 
+# Datasets
 
+Se incluyen los siguientes archivos.
 
+1. "Tickers_1.0.xlsx" : Fuente de información desde donde he extraído los nombres de las empresas que se analizan en el estudio. Pestaña "USA".
+2. Carpeta "Data": 1.166 archivos correspondientes a las empresas que se analizan en este estudio.
+3. Carpeta Industrias: Archivos excel correspondiente a la clasificación de las empresas en sus respectivas industrias.
 
 
 
