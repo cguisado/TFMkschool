@@ -15,11 +15,6 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 import warnings
 warnings.filterwarnings('ignore') 
 
-#Definimos variable "ruta" para guardar los datos en una carpeta específica.
-ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
-lista_industrias = os.listdir(r"C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/")
-lista_industrias[0]
-
 def analysis_industria(industria):
     #Leemos el archivo excel de la industria 'Healthcare'.
     ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
@@ -28,72 +23,80 @@ def analysis_industria(industria):
     nombre_industria = industria[:punto]
     print("Vamos a analizar la industria: " + nombre_industria + ".")
     
-    #CDefinimos variable con una lista de las columnas
-    #col = list(df.columns)
-    #Definimos los filtros que no queremos en el dataset
-    #filtro1 = [col for col in df if col.startswith('Company Name')]
-    #filtro2 = [col for col in df if col.startswith('Field Name')]
-    #Eleminamos esos filtros
-    df = df.drop(columns=filtro1)
-    df = df.drop(columns=filtro2)
-    #Limpieza de datos de los Ratios
+    #Borramos aquellas columnas de las cuales no tenemos ningún dato. 
+    #Esto lo hacemos porque en el dataset vienen variables financieras las cuales no se estudian en todas las industrias.
+    df = df.dropna(axis = 1, how ="all")
+    df = df.dropna(axis = 1, how ="all")
     df = df.drop(['TRBC Industry Group'], axis = 1)
     
     
-    #Borramos aquellas columnas de las cuales no tenemos ningún dato. 
-    #Esto lo hacemos porque en el dataset vienen variables financieras las cuales no se estudian en todas las industrias.
-    df_ = df.dropna(axis = 1, how = "all")
-    df_ = df_.dropna(axis=0, how = "all")
-    df_groupby = df_.groupby("Company Name")
+    #Empresas que vamos a analizar
+    df_groupby = df.groupby("Company Name")
     print("En esta industria, analizaremos un total de " + str(len(df_groupby)) + " empresas que cotizan en el mercado bursátil.")
     print()
-    print("El dataset en cuestión tiene unas dimensiones iniciales de: " + str(df_.shape) + " , ya que contamos con el histórico financiero de las empresas a analizar.") 
+    
+    #Dimensiones y ratios a analizar:
+    df_ = df
+    #Limpieza de datos de los Ratios
+    df = df.drop(['Company Name','Field Name'], axis = 1)
+    df = df.dropna(axis = 0, how = "all")
+    Ratios = df
+    #Limpieza de datos de los Ratios
+    print("El dataset en cuestión tiene unas dimensiones de: " + str(df_.shape) + " , ya que contamos con el histórico financiero de las empresas a analizar.") 
+    print()
+    print("El número total de Ratios a analizar en esta industria es de :" + str(df_.shape[1]))
     print()
     
-    print("El número total de Ratios a analizar en esta industria es de :" + str(Ratios.shape[1]))
-    print()
-    
-    #Análisis Industria del año 2019
+    #Análisis Industria del año 2019:
     #Guardamos la variable final para estudiarla junto con la empresa que queramos
     #Reemplazamos los valores nulos por la media del total del año 2019
-    df_analysis = df_
-    df_analysis = df_analysis[df_analysis["Field Name"].str.contains("2019")]
-    df_analysis = df_analysis.drop(["Company Name", "Field Name"], axis = 1)
-    #Reemplazamos los valores nulos por la media del total y sacamos graficos de cómo ha ido evolucionando cada ratio.
-    cols = df_analysis.columns.tolist()
+    df_analysis_2019 = df_
+    df_analysis_2019 = df_analysis_2019[df_analysis_2019["Field Name"].str.contains("2019")]
+    #CDefinimos variable con una lista de las columnas
+    col = df_analysis_2019.columns.values.tolist()
+    #Definimos los filtros que no queremos en el dataset
+    df_analysis_2019 = df_analysis_2019.drop(['Company Name','Field Name'], axis = 1)
+    #Reemplazamos valores nulos por la media
+    cols = df_analysis_2019.columns.tolist()
     for i in cols:
-        df_analysis[i] = df_analysis[i].fillna(df_analysis[i].mean())
-   
-    df_analysis = df_analysis.describe()
-    df_analysis = df_analysis[1:]
-    df_2019_industria = pd.DataFrame(df_analysis.iloc[0])
-    df_2019_industria = df_2019_industria.transpose()
+        df_analysis_2019[i] = df_analysis_2019[i].fillna(df_analysis_2019[i].mean())
+    df_analysis_2019 = df_analysis_2019.describe()
+    df_analysis_2019 = df_analysis_2019[1:]
+    df_2019_industria = pd.DataFrame(df_analysis_2019.iloc[0])
+    df_2019_industria = df_2019_industria.transpose().rename(index={'mean': "2019"})
+    df_2019_industria
     
     #Análisis Industria
     #Reemplazamos los valores nulos por la media del total y sacamos graficos de cómo ha ido evolucionando cada ratio.
     df_analysis = df_
     df_rt = pd.DataFrame()
-
     for i in range (2010,2020):
-        df_analysis = df_[df_ratios["Field Name"].str.endswith(str(i))]
-        df_analysis = df_analysis.drop(["Company Name", "Field Name"], axis = 1)
+        df_analysis = df_[df_["Field Name"].str.endswith(str(i))]
+        col = df_analysis.columns.values.tolist()
+        df_analysis = df_analysis.drop(['Company Name','Field Name'], axis = 1)
         cols = df_analysis.columns.tolist()
-        
         #Se reemplazan los valores nulos por la media
         for x in cols:
             df_analysis[x] = df_analysis[x].fillna(df_analysis[x].mean())
-
+        #Calculamos el porcentaje de valores nulos por columna, y borramos aquellas columnas con más de un 12%
+        total = df_analysis.isnull().sum().sort_values(ascending = False)
+        percent = (df_analysis.isnull().sum() / df_analysis.isnull().count()).sort_values(ascending = False)
+        missing_data = pd.concat([total, percent], axis = 1, keys = ['Total', 'Percent'])
+        df_analysis = df_analysis.drop((missing_data[missing_data['Percent'] > 0.12]).index,1)
         #Se sacan los datos estadísticos
         df_analysis = pd.DataFrame(df_analysis.describe())
         df_analysis = df_analysis[1:]
         df_analysis = pd.DataFrame(df_analysis.iloc[0])
-        df_analysis = df_analysis.transpose()
-        #Cambiar mean por año
-        df_rt = pd.concat([df_rt, df_analysis], axis = 0)
+        df_analysis = df_analysis.transpose().rename(index={'mean': i})
 
+        #Cambiar mean por la i
+        df_rt = pd.concat([df_rt, df_analysis], axis = 0)
+    
+    df_rt
+    
+    #Representación gráfica con plots
     print("Ahora vamos a ver, en forma gráfica, como han ido evolucionando la media de estos ratios a lo largo de los últimos años.")
-    print()
-        
+    print()       
     cols = df_rt.columns.values.tolist()
     for i in range(0,len(df_rt.columns)):
         df_rt[cols[i]].plot()
@@ -101,37 +104,29 @@ def analysis_industria(industria):
         plt.ylabel("Valor Medio")
         plt.title(str(df_rt[cols[i]].name))
         print(plt.show())
-    _________________________________
     
-    
-    
-    
-    #Calculamos el porcentaje de valores nulos por columna, y borramos aquellas columnas con más de un 12%
-    total = Ratios.isnull().sum().sort_values(ascending = False)
-    percent = (Ratios.isnull().sum() / Ratios.isnull().count()).sort_values(ascending = False)
-    missing_data = pd.concat([total, percent], axis = 1, keys = ['Total', 'Percent'])
-    Ratios = Ratios.drop((missing_data[missing_data['Percent'] > 0.12]).index,1)
-    #Limpieza
-    Ratios = Ratios.dropna(axis = 1, how = 'any')
-
     #VIF
     #Calcularemos el Factor de Inflación de Varianza para cada una de los ratios, con el fin de eliminar de nuestra ecuación
     #aquellos que ofrezcan la misma información, con el objetivo de crear un modelo acertado.
-    def calculate_vif(Ratios):
+    corr = Ratios.corr()
+    Ratios_vif = Ratios
+    cols = Ratios_vif.columns.tolist()
+    for i in cols:
+        Ratios_vif[i] = Ratios_vif[i].fillna(Ratios_vif[i].mean())
+
+    def calculate_vif(Ratios_vif):
         vif = pd.DataFrame()
-        vif["Ratios"] = Ratios.columns
-        vif["VIF"] = [variance_inflation_factor(Ratios.values, i) for i in range(Ratios.shape[1])]    
+        vif["Ratios"] = Ratios_vif.columns
+        vif["VIF"] = [variance_inflation_factor(Ratios_vif.values, i) for i in range(Ratios_vif.shape[1])]    
         return(vif)
-    vif = calculate_vif(Ratios)
+    vif = calculate_vif(Ratios_vif)
     while vif['VIF'][vif['VIF'] > 7].any():
         remove = vif.sort_values('VIF',ascending=0)['Ratios'][:1]
-        Ratios.drop(remove,axis=1,inplace=True)
-        vif = calculate_vif(Ratios)
-     
-    print("Una vez realizada la limpieza de datos, y habiendo hecho un estudio estadístico con el fin de eliminar aquellas variables dependientes entre sí con un alto valor de VIF, el número total de ratios a analizar es de: " + str(len(vif) -1))
-    print()
+        Ratios_vif.drop(remove,axis=1,inplace=True)
+        vif = calculate_vif(Ratios_vif)
+    vif
     
-    corr = Ratios.corr()
+
     data = corr[['Market Capitalization']].sort_values(by = 'Market Capitalization',ascending = False)
     data_corr = data["Market Capitalization"]
     data_corr= data_corr.to_frame()
@@ -144,7 +139,7 @@ def analysis_industria(industria):
     data_ = data_.iloc[0:10]
     
     #Análisis de la correlación de los ratios
-    ratios = Ratios.corr()
+    ratios = corr
     Ratios_corr = ratios[[data_.iloc[0].name, data_.iloc[1].name, data_.iloc[2].name, data_.iloc[3].name, data_.iloc[4].name, data_.iloc[5].name, data_.iloc[6].name, data_.iloc[7].name]]
     filas = Ratios_corr.index.values
     columnas = Ratios_corr.columns.values
@@ -165,13 +160,21 @@ def analysis_industria(industria):
     lista = []
     for i in range(1,len(data_)):
         lista.append(data_.iloc[i].name)
-    print("Las variables financieras con mayor correlación con respecto a la varianza en su cotización son las siguientes: ")
+    print("Las variables financieras con mayor correlación con respecto a la varianza en su cotización en la industria " + nombre_industria  + " son las siguientes: ")
     print()
-    print(lista)
+    for x in lista:
+        print(x)
+    
     
 #Prueba
 analysis("Healthcare.xlsx")
-       
+
+#Si queremos hacer un análisis para cada una de las empresas, podemos hacerlo con este bucle.
+#Definimos variable para recorrer los datos de una carpeta específica.
+ruta = "C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/"
+lista_industrias = os.listdir(r"C:/Users/carlos.guisado/Documents/Master/Master Kschool/TFM/Industrias/")
+lista_industrias[0]
+
 for industria in range(0,len(lista_industrias)):
     analysis(lista_industrias[industria])
     
