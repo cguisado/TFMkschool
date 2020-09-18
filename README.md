@@ -74,9 +74,22 @@ Los modelos que se han realizado son los siguientes:
 
 6. Visualización
 
-
-
-
+La visualización consiste en aplicar todo lo realizado anteriormente a través de dos fórmulas:
+- Formula 1: analysis_industria(industria)
+  En esta fórmula hay que introducir el nombre de uno de los archivos de la industria que queramos analizar. Te devuelve lo siguiente:
+    - Número de empresas en la industria.
+    - Número de ratios que se pueden analizar. No se pueden analizar todos ya que las variables no son independientes entre si, como hemos comentado antes sobre el problema de   la multicolinealidad.
+    - La evolución de los ratios de la industria en el tiempo.
+    - Matriz de correlación de los ratios financieros con respecto a la varianza del "Market Capitalization".
+    - Lista con las variables financieras con mayor relevancia.
+ - Formula 2: analysis_empresa(empresa)
+   El parámetro a pasar es el nombre de una de las empresas que tengamos dentro de nuestro Dataset. El nombre no tiene por qué estar al completo. Te devuelve:
+     - Análisis de la industria a la que pertence la empresa (fórmula anterior).
+     - Análisis de los ratios en el último año (2019).
+     - Comparativa entre los ratios de la industria y los ratios de la empresa.
+     - Comentario sobre si pensamos que la empresa está infravalorada o sobrevalorada en la actualidad. (El comentario responde al resultado de los modelos predictivos.
+     
+    
 
 
 
