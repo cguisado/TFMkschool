@@ -10,12 +10,12 @@ Se utilizará la siguiente fuente de Datos para obtener los datos financieros hi
 
 # Metodología de Trabajo
 
-Este estudio está dividido en diversas fases, desde la extracción del dato, la limpieza y estructuración del mismo, el estudio de las variables y la creación de modelos predictivos y la visualización final.
+Este estudio está dividido en diversas fases, desde la extracción del dato, la limpieza y estructuración del mismo, el estudio de las variables, la creación de modelos predictivos y la visualización final.
 
 
 ### 1. La extracción del dato
-Se ha realizado a través de una herramienta de RPA llamada UiPath.
-La función de esta herramienta ha sido la de hacer estas actividades de manera automática:
+Se ha realizado a través de una herramienta de RPA (Robotics) llamada UiPath.
+La función de esta herramienta ha sido la de hacer las siguientes actividades de manera automática:
 - Entrar en mi cuenta de Thomson Reuters utilizando mi usuario y mi contraseña.
 - Buscar en el buscador de la página web la empresa que queríamos analizar. (Se le pasa una lista por excel con las distintas empresas).
 - Ir haciendo clicks en la aplicación de Thomson hasta llegar a los datos financieros.
@@ -25,25 +25,29 @@ La función de esta herramienta ha sido la de hacer estas actividades de manera 
 
 Gracias a esta herramienta, hemos podido descargar de la página web de Thomson Reuters los datos financieros de un total de 1.066 empresas.
 
-Se adjunta código UiPath. 
+Se adjunta código UiPath. Archivo ("Thomsonv2.xaml").
 
 
 
 ### 2. Estructuración del dato
-Los datos previamente descargados en UiPath no se encuentran estructurados, por lo que hemos utilizando código VBA para recoger los datos financieros que nos interesaban y guardarlos en una pestaña nueva dentro de cada uno de los archivos de las empresas. A esta pestaña se le da el nombre de "Financial Data".
+Los datos previamente descargados en UiPath no se encuentran estructurados, y son 1066 archivos diferentes. Hemos utilizado código VBA para recoger los datos financieros que nos interesaban de cada una de las empresas, guardando dichos datos en una pestaña con el nombre de "FinancialData".
 
-Con este paso, conseguimos estructurar los datos financieros de cada una de las empresas. Esto se consigue realizando un bucle dentro de una ruta dada.
+Con este paso, conseguimos estructurar los datos financieros de cada una de las empresas. 
 
-Se adjunta código VBA.
+Se han realizado dos código diferentes. En el primero de ellos se consigue hacer la reestructuración de uno de los archivos. El segundo código es una llamada al primero dentro de un bucle for para que vaya recorriendo una ruta dada y estructurando todos los archivos.
+Se adjunta código VBA de dos maneras:
+  - Archivo "TFM_Kschool.xlsm" : el archivo está en blanco. El código se encuentra en dos módulos dentro del programador de VBA.
+  - Archivos ".txt". Cada uno de ellos es un código distinto.
 
+Al ser 1.066 empresas, no es posible subirlas todas en la misma carpeta de github. Adjunto una carpeta de prueba con distintos datsets individuales de empresas.
 
 ### 3. Limpieza del dato
-Este paso se realiza a través de python, y forman parte del mismo los siguientes módulos:
-- Paso 1 - concatenar.
-- Paso 2 - Limpieza de datos, generación de variables y clasificación por industrias.
+Desde aquí, el lenguaje de programación a utilizar es el de python. Se han dejado archivos ".py" con el código en la carpeta "Python", al igual que también se ha subido el código a través de GitHub. Forman parte de este paso los siguientes módulos:
+- 01 - Concatenación de datasets.
+- 02 - Limpieza de datos, generación de variables y clasificación por industrias.
 
-En el primer paso, el objetivo es el de concatenar todos los archivos excel de cada una de las empresas descargadas a una común para poder trabajar con ella.
-Este archivo se llamará df.xlsx, el cuál se adjunta también en el repositorio.
+En el primer paso, el objetivo es el de concatenar todos los archivos excel de cada una de las empresas descargadas a un archivo común para poder trabajar con el. 
+Este archivo se llamará "df.xlsx", el cuál se adjunta también en el repositorio.
 
 En el segundo paso, los objetivos son los siguientes:
 - A partir de los datos financieros recopilados, crear un nuevo DataFrame en el que añadir los ratios financieros que queremos analizar. Para calcular algunos ratios ha sido necesario operar con distintos datos financieros a través de fórmulas financieras simples.
@@ -51,13 +55,12 @@ En el segundo paso, los objetivos son los siguientes:
 - Dividir el dataset resultante con todos los ratios entre tantas industrias como queramos analizar. Cada industria se guardará en un dataset en una ruta dada.
 
 
-
 ### 4. Análisis de correlación entre variables financieras
-El módulo en el que se hace este análisis es el que se llama "Paso 3-4- Análisis de datos y Modelo predictivo."El objetivo de este paso es conocer qué ratios son los que tienen mayor relación con el incremento del valor de mercado de una empresa.
+El módulo en el que se hace este análisis es llamado "03 - Análisis de Datos". El objetivo de este paso es conocer qué ratios son los que tienen mayor relación con el incremento del valor de mercado de una empresa.
 
-Al hacer un primer análisis de la industria, nos damos cuenta que existe un problema de colinealidad. Es decir, existen variables las cuales son dependientes enre sí y aportan la misma información al estudio.
+Al hacer un primer análisis de la industria, nos damos cuenta que existe un problema de multicolinealidad entre las variables. Es decir, existen variables las cuales son dependientes entre sí y aportan la misma información al estudio.
 
-La manera de solucionarlo es con un estudio del factor de inflación de la varianza. Aquellas variables con un alto "VIF" serán eliminadas de nuestro modelo, con el objetivo de conocer cuáles son las que mayor correlación, ya sea positiva o negativa, tienen con respecto al "Market Value".
+La manera de solucionarlo es con un estudio del factor de inflación de la varianza. Aquellas variables con un alto "VIF" serán eliminadas de nuestro modelo, con el objetivo de conocer cuáles son aquellas con mayor correlación con respecto al "Market Value" e independencia entre las mismas.
 
 Una vez ya tenemos los ratios correctos, los ordenamos y realizamos una matriz de correlación con respecto a la varianza de un año a otro en "Market Capitalization".
 
@@ -67,19 +70,20 @@ Para analizar la industria más profundamente, crearemos un dataframe con la med
 
 ### 5. Modelos predictivos
 
-El objetivo de este paso es crear un modelo que sea eficaz a la hora de predecir la variación en el "Market Capitalization" dados unas variaciones dadas de sus ratios financieros.
-El modelo predictivo se hará con cada dataset de la industria, y se aplicará el algoritmo a la empresa que se pretenda analizar.
+El objetivo de este paso es crear un modelo que sea capaz de predecir la variación en el "Market Capitalization" dados unas variaciones dadas de sus ratios financieros.
+El modelo predictivo se hará con cada dataset de la industria.
 Los modelos que se han realizado son los siguientes:
 - Regresión múltiple.
 - Regresión Polinomial.
-- Regresión Logística. Esta regresión devuelve si debería haber subido o bajado el valor en bolsa de acuerdo al movimiento de sus ratios financieros, pero no intenta predecrir el porcentaje exacto de subida o bajada.
-- Árbol de decisión
+- Regresión Logística. Esta regresión devuelve si debería haber subido o bajado el valor en bolsa de acuerdo al movimiento de sus ratios financieros, pero no intenta predecir el porcentaje exacto de subida o bajada. 
+- Árbol de decisión.
 
 
 
 ### 6. Visualización
 
 La visualización consiste en aplicar todo lo realizado anteriormente a través de dos fórmulas:
+
 - Formula 1: analysis_industria(industria)
   En esta fórmula hay que introducir el nombre de uno de los archivos de la industria que queramos analizar. Te devuelve lo siguiente:
     - Número de empresas en la industria.
@@ -87,12 +91,13 @@ La visualización consiste en aplicar todo lo realizado anteriormente a través 
     - La evolución de los ratios de la industria en el tiempo.
     - Matriz de correlación de los ratios financieros con respecto a la varianza del "Market Capitalization".
     - Lista con las variables financieras con mayor relevancia.
+    
  - Formula 2: analysis_empresa(empresa)
    El parámetro a pasar es el nombre de una de las empresas que tengamos dentro de nuestro Dataset. El nombre no tiene por qué estar al completo. Te devuelve:
      - Análisis de la industria a la que pertence la empresa (fórmula anterior).
      - Análisis de los ratios en el último año (2019).
      - Comparativa entre los ratios de la industria y los ratios de la empresa.
-     - Comentario sobre si pensamos que la empresa está infravalorada o sobrevalorada en la actualidad. (El comentario responde al resultado de los modelos predictivos.
+     - Resultados de los modelos predictivos.
      
     
 
@@ -101,11 +106,7 @@ La visualización consiste en aplicar todo lo realizado anteriormente a través 
 Se incluyen los siguientes archivos.
 
 1. "Tickers_1.0.xlsx" : Fuente de información desde donde he extraído los nombres de las empresas que se analizan en el estudio. Pestaña "USA".
-2. Carpeta "Data": 1.166 archivos correspondientes a las empresas que se analizan en este estudio.
-3. Carpeta Industrias: Archivos excel correspondiente a la clasificación de las empresas en sus respectivas industrias.
-
-
-
-
-
-
+2. Carpeta "Data": Al no ser posible subir 1.066 archivos, subimos 50 correspondientes a las empresas que se analizan en este estudio como ejemplo.
+3. Carpeta Datasets Industrias: Archivos excel correspondiente a la clasificación de las empresas en sus respectivas industrias.
+4. "df.xlsx" : Es el resultado de la concatenación de los datos financieros de las 1.066 empresas en un solo archivo.
+5. "Ratios.xlsx": En él encontramos todas las empresas con las varianzas de los ratios financieros de un año a otro.
