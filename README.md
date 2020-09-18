@@ -63,6 +63,13 @@ Para analizar la industria más profundamente, crearemos un dataframe con la med
 
 5. Modelos predictivos
 
+El objetivo de este paso es crear un modelo que sea eficaz a la hora de predecir la variación en el "Market Capitalization" dados unas variaciones dadas de sus ratios financieros.
+El modelo predictivo se hará con cada dataset de la industria, y se aplicará el algoritmo a la empresa que se pretenda analizar.
+Los modelos que se han realizado son los siguientes:
+- Regresión múltiple.
+- Regresión Polinomial.
+- Regresión Logística. Esta regresión devuelve si debería haber subido o bajado el valor en bolsa de acuerdo al movimiento de sus ratios financieros, pero no intenta predecrir el porcentaje exacto de subida o bajada.
+- Árbol de decisión
 
 
 6. Visualización
